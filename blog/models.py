@@ -39,14 +39,12 @@ class BlogPage(Page):
     authors = ParentalManyToManyField('blog.Author', blank=True)
     tags = ClusterTaggableManager(through=BlogPageTag, blank=True)
     body = StreamField([
-        ('heading', blocks.CharBlock(form_classname="full title")),
-        ('paragraph', blocks.RichTextBlock()),
-        ('image', ImageChooserBlock()),
-        ('quote', blocks.BlockQuoteBlock()),  # <-- Добавили блок для цитат
-        ('embed', EmbedBlock()),  # <-- Добавили блок для встраивания контента
-        # Здесь мы будем добавлять другие типы блоков позже
-    ],
-        use_json_field=True)  # use_json_field=True - это рекомендуемый способ хранения StreamField в новых версиях Wagtail
+        ('heading', blocks.CharBlock(form_classname="full title", template="blog/streamfield/blocks/heading_block.html")), # <-- Указали шаблон
+        ('paragraph', blocks.RichTextBlock()), # Для RichTextBlock и EmbedBlock стандартные шаблоны Wagtail обычно подходят
+        ('image', ImageChooserBlock(template="blog/streamfield/blocks/image_block.html")), # <-- Указали шаблон
+        ('quote', blocks.BlockQuoteBlock()),
+        ('embed', EmbedBlock()),
+    ], use_json_field=True)  # use_json_field=True - это рекомендуемый способ хранения StreamField в новых версиях Wagtail
 
     def main_image(self):
         gallery_item = self.gallery_images.first()

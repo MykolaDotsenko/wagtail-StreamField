@@ -1,0 +1,9 @@
+{# blog/templates/blog/streamfield/blocks/image_block.html #}
+{% load wagtailimages_tags %}
+{% comment %}
+Этот шаблон отвечает за отображение блока 'image'
+{% endcomment %}
+
+<div class="streamfield-image-wrapper">
+    {% image value fill-150x150 class="streamfield-image" %}
+</div>

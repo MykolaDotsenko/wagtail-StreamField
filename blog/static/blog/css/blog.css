@@ -1,0 +1,41 @@
+/* blog/static/blog/css/blog.css */
+
+/* Стили для заголовков StreamField */
+.streamfield-heading {
+    color: #333; /* Темно-серый цвет текста */
+    border-bottom: 2px solid #007bff; /* Синяя линия под заголовком */
+    padding-bottom: 5px; /* Отступ снизу */
+    margin-top: 20px; /* Отступ сверху */
+    margin-bottom: 15px; /* Отступ снизу */
+    font-size: 1.8em; /* Размер шрифта */
+}
+
+/* Стили для изображений StreamField */
+.streamfield-image-wrapper {
+    text-align: center; /* Центрируем изображение */
+    margin: 20px 0; /* Отступы сверху и снизу */
+}
+
+.streamfield-image {
+    border-radius: 50%; /* Делаем изображение круглым */
+    width: 150px; /* Фиксированная ширина */
+    height: 150px; /* Фиксированная высота */
+    object-fit: cover; /* Обрезаем изображение, чтобы оно вписывалось в круг */
+    border: 3px solid #ddd; /* Светлая рамка */
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2); /* Небольшая тень */
+}
+
+/* Стили для цитат StreamField */
+blockquote {
+    font-style: italic;
+    margin: 20px 40px;
+    padding: 10px 20px;
+    border-left: 5px solid #ccc;
+    background-color: #f9f9f9;
+}
+
+/* Стили для встроенного контента StreamField (базовые) */
+.embed-block {
+    margin: 20px 0;
+    text-align: center;
+}
