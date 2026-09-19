@@ -5,7 +5,7 @@ from datetime import date, timedelta
 from django.db import models, transaction
 from django.utils import timezone
 
-from household.models import PantryItem, Routine, RoutineEvent, ShoppingItem
+from household.models import MealPlanEntry, PantryItem, Routine, RoutineEvent, ShoppingItem
 
 AUTO_CATEGORY = "auto"
 
@@ -589,3 +589,40 @@ def archive_routine(*, user, routine_id: int) -> Routine:
     routine.postponed_until = None
     routine.save(update_fields=["active", "postponed_until", "updated_at"])
     return routine
+
+
+@transaction.atomic
+def set_dinner(
+    *,
+    user,
+    dinner_date: date,
+    recipe=None,
+    custom_name: str = "",
+) -> MealPlanEntry:
+    if recipe is not None:
+        name = recipe.title
+    else:
+        name = ShoppingItem.normalize_display_name(custom_name)
+
+    if not name:
+        raise ValueError("Dinner requires a recipe or a custom name.")
+
+    entry, _ = MealPlanEntry.objects.update_or_create(
+        user=user,
+        date=dinner_date,
+        defaults={
+            "recipe": recipe,
+            "name": name,
+        },
+    )
+    return entry
+
+
+@transaction.atomic
+def delete_dinner(*, user, entry_id: int) -> MealPlanEntry:
+    entry = MealPlanEntry.objects.select_for_update().get(
+        pk=entry_id,
+        user=user,
+    )
+    entry.delete()
+    return entry
