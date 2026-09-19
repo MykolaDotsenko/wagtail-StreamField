@@ -24,9 +24,10 @@ from .selectors import (
     shopping_snapshot,
 )
 from .services import (
+    StaleRoutineAction,
     add_pantry_item_to_shopping,
-    archive_routine,
     add_shopping_item,
+    archive_routine,
     complete_routine,
     create_pantry_item,
     create_routine,
@@ -35,7 +36,6 @@ from .services import (
     postpone_routine,
     restore_shopping_item,
     skip_routine,
-    StaleRoutineAction,
     toggle_shopping_item,
     update_pantry_item,
     update_routine,
