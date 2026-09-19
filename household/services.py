@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from django.db import models, transaction
 from django.utils import timezone
 
-from household.models import ShoppingItem
+from household.models import PantryItem, ShoppingItem
 
 AUTO_CATEGORY = "auto"
 
@@ -256,3 +256,51 @@ def restore_shopping_item(*, user, item_id: int) -> MutationResult:
         ]
     )
     return MutationResult(item=item)
+
+
+@transaction.atomic
+def create_pantry_item(*, user, data) -> PantryItem:
+    return PantryItem.objects.create(
+        user=user,
+        name=data["name"],
+        category=data["category"],
+        quantity_mode=data["quantity_mode"],
+        approximate_level=data["approximate_level"],
+        amount=data["amount"],
+        unit=data["unit"],
+        low_stock_threshold=data["low_stock_threshold"],
+        expires_on=data["expires_on"],
+    )
+
+
+@transaction.atomic
+def update_pantry_item(*, user, item_id: int, data) -> PantryItem:
+    item = PantryItem.objects.select_for_update().get(pk=item_id, user=user)
+    item.name = data["name"]
+    item.category = data["category"]
+    item.quantity_mode = data["quantity_mode"]
+    item.approximate_level = data["approximate_level"]
+    item.amount = data["amount"]
+    item.unit = data["unit"]
+    item.low_stock_threshold = data["low_stock_threshold"]
+    item.expires_on = data["expires_on"]
+    item.save()
+    return item
+
+
+@transaction.atomic
+def delete_pantry_item(*, user, item_id: int) -> PantryItem:
+    item = PantryItem.objects.select_for_update().get(pk=item_id, user=user)
+    item.delete()
+    return item
+
+
+@transaction.atomic
+def add_pantry_item_to_shopping(*, user, item_id: int) -> AddShoppingResult:
+    item = PantryItem.objects.select_for_update().get(pk=item_id, user=user)
+    return add_shopping_item(
+        user=user,
+        name=item.name,
+        quantity=1,
+        category=item.category,
+    )
