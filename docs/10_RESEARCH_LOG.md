@@ -175,6 +175,34 @@ Domain model plans `PRECISE` and `APPROXIMATE` modes. Usability should be re-eva
 
 ---
 
+## 2026-09-19 — Should navigation expose planned-but-unimplemented modules?
+
+Area: UX
+Status: Validated
+Confidence: High
+
+### Question
+
+Should PR2 render the complete future navigation structure even though Plan, Shopping, Pantry, Routines and Quick Add do not exist yet?
+
+### Evidence
+
+The product UX objective is to minimize navigation ambiguity and preserve trust. A visible navigation item implies a working destination. Placeholder routes or dead links would increase noise without helping a current user complete a task.
+
+### Finding
+
+Navigation should reveal capabilities progressively. PR2 exposes only real destinations: Today, Discover and authentication/content utilities.
+
+### Product/engineering impact
+
+Future vertical slices add their navigation destinations in the same PR that makes the route useful. The design system already reserves the responsive shell patterns, so this does not require a visual redesign.
+
+### Follow-up
+
+Re-evaluate the mobile five-slot navigation once Plan, Home modules and Quick Add all exist.
+
+---
+
 ## Open research backlog
 
 These questions should be answered only when their PR approaches:
