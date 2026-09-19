@@ -5,7 +5,6 @@ from django.utils import timezone
 
 from household.models import ShoppingItem
 
-
 AUTO_CATEGORY = "auto"
 
 
