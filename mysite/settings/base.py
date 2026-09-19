@@ -5,6 +5,7 @@ BASE_DIR = PROJECT_DIR.parent
 
 INSTALLED_APPS = [
     "content",
+    "recipes",
     "household",
     "blog",
     "home",
