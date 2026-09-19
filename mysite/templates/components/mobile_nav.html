@@ -5,6 +5,10 @@
                 <span class="mobile-nav__icon" aria-hidden="true">●</span>
                 <span>Today</span>
             </a>
+            <a class="mobile-nav__item"{% if request.resolver_match.namespace == "household" and request.resolver_match.url_name == "plan" %} aria-current="page"{% endif %} href="{% url 'household:plan' %}">
+                <span class="mobile-nav__icon" aria-hidden="true">▦</span>
+                <span>Plan</span>
+            </a>
         {% else %}
             <a class="mobile-nav__item"{% if request.path == "/" %} aria-current="page"{% endif %} href="/">
                 <span class="mobile-nav__icon" aria-hidden="true">●</span>
@@ -15,7 +19,7 @@
         {% if request.user.is_authenticated %}
             <a class="mobile-nav__item"{% if request.resolver_match.namespace == "household" and request.resolver_match.url_name == "shopping" %} aria-current="page"{% endif %} href="{% url 'household:shopping' %}">
                 <span class="mobile-nav__icon" aria-hidden="true">✓</span>
-                <span>Shopping</span>
+                <span>Shop</span>
             </a>
             <a class="mobile-nav__item"{% if request.resolver_match.namespace == "household" and request.resolver_match.url_name == "pantry" %} aria-current="page"{% endif %} href="{% url 'household:pantry' %}">
                 <span class="mobile-nav__icon" aria-hidden="true">◌</span>
@@ -23,13 +27,13 @@
             </a>
             <a class="mobile-nav__item"{% if request.resolver_match.namespace == "household" and request.resolver_match.url_name == "routines" %} aria-current="page"{% endif %} href="{% url 'household:routines' %}">
                 <span class="mobile-nav__icon" aria-hidden="true">↻</span>
-                <span>Routines</span>
+                <span>Rhythm</span>
             </a>
         {% endif %}
 
         <a class="mobile-nav__item"{% if request.resolver_match.url_name == "search" %} aria-current="page"{% endif %} href="{% url 'search' %}">
             <span class="mobile-nav__icon" aria-hidden="true">⌕</span>
-            <span>Discover</span>
+            <span>Learn</span>
         </a>
 
         {% if not request.user.is_authenticated %}
