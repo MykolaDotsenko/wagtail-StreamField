@@ -111,5 +111,4 @@ class ShoppingServiceTests(TestCase):
         self.assertEqual(result.item.pk, active_item.pk)
         self.assertEqual(result.item.quantity, 3)
 
-        deleted_item.refresh_from_db()
-        self.assertIsNotNone(deleted_item.deleted_at)
+        self.assertFalse(ShoppingItem.objects.filter(pk=deleted_item.pk).exists())
