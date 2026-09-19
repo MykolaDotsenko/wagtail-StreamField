@@ -61,7 +61,7 @@ class GuideBodyBlock(blocks.StreamBlock):
         features=["h3", "h4", "bold", "italic", "link", "ol", "ul"]
     )
     image = ImageChooserBlock(template="blog/streamfield/blocks/image_block.html")
-    accessible_image = ImageBlock()
+    accessible_image = ImageBlock(template="blog/streamfield/blocks/image_block.html")
     quote = blocks.BlockQuoteBlock()
     embed = EmbedBlock()
     checklist = ChecklistBlock()
@@ -106,6 +106,6 @@ class RecipeBodyBlock(blocks.StreamBlock):
     paragraph = blocks.RichTextBlock(
         features=["h3", "h4", "bold", "italic", "link", "ol", "ul"]
     )
-    image = ImageBlock()
+    image = ImageBlock(template="blog/streamfield/blocks/image_block.html")
     tip = TipBlock()
     quote = blocks.BlockQuoteBlock()

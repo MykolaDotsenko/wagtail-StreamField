@@ -25,9 +25,21 @@ jobs:
         run: python manage.py makemigrations --check --dry-run
       - name: Django checks
         run: python manage.py check
+      - name: Production deploy checks
+        env:
+          DJANGO_SETTINGS_MODULE: mysite.settings.production
+          DJANGO_SECRET_KEY: ci-only-deployment-check-secret-with-enough-entropy-2026-09-19
+          DJANGO_ALLOWED_HOSTS: localhost
+          DJANGO_CSRF_TRUSTED_ORIGINS: https://localhost
+        run: python manage.py check --deploy --fail-level WARNING
       - name: Tests with coverage
         run: |
           coverage run manage.py test
           coverage report
-      - name: Static build
+      - name: Production static build
+        env:
+          DJANGO_SETTINGS_MODULE: mysite.settings.production
+          DJANGO_SECRET_KEY: ci-only-static-build-secret-with-enough-entropy-2026-09-19
+          DJANGO_ALLOWED_HOSTS: localhost
+          DJANGO_CSRF_TRUSTED_ORIGINS: https://localhost
         run: python manage.py collectstatic --noinput

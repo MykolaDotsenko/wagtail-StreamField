@@ -48,6 +48,39 @@ class PlannerModelTests(TestCase):
         self.assertEqual(meal.label, "Soup")
         self.assertIn("Soup", str(meal))
 
+    def test_recurring_chore_completion_reschedules_from_today(self):
+        chore = Chore(
+            user=self.user,
+            title="Change bed linen",
+            frequency=Chore.Frequency.WEEKLY,
+            due_on=datetime.date(2026, 1, 1),
+        )
+        chore.complete(today=datetime.date(2026, 1, 10))
+
+        self.assertFalse(chore.is_done)
+        self.assertEqual(chore.due_on, datetime.date(2026, 1, 17))
+
+    def test_monthly_chore_preserves_day_when_possible_and_clamps_month_end(self):
+        chore = Chore(
+            user=self.user,
+            title="Clean washing machine",
+            frequency=Chore.Frequency.MONTHLY,
+            due_on=datetime.date(2026, 1, 31),
+        )
+        chore.complete(today=datetime.date(2026, 1, 20))
+
+        self.assertEqual(chore.due_on, datetime.date(2026, 2, 28))
+
+    def test_one_off_chore_stays_completed(self):
+        chore = Chore(
+            user=self.user,
+            title="Declutter drawer",
+            frequency=Chore.Frequency.ONCE,
+        )
+        chore.complete()
+
+        self.assertTrue(chore.is_done)
+
     def test_meal_form_requires_recipe_or_custom_meal(self):
         form = MealPlanEntryForm(
             data={
@@ -129,6 +162,22 @@ class PlannerViewTests(TestCase):
         self.assertRedirects(response, reverse("planner:dashboard"))
         item.refresh_from_db()
         self.assertTrue(item.is_done)
+
+    def test_recurring_chore_done_action_advances_due_date(self):
+        chore = Chore.objects.create(
+            user=self.user,
+            title="Vacuum living room",
+            frequency=Chore.Frequency.WEEKLY,
+            due_on=datetime.date.today(),
+        )
+        response = self.client.post(
+            reverse("planner:toggle_item", args=["chore", chore.pk])
+        )
+
+        self.assertRedirects(response, reverse("planner:dashboard"))
+        chore.refresh_from_db()
+        self.assertFalse(chore.is_done)
+        self.assertGreater(chore.due_on, datetime.date.today())
 
     def test_invalid_toggle_kind_fails_closed(self):
         response = self.client.post(

@@ -98,8 +98,16 @@ def toggle_item(request, kind, pk):
         messages.error(request, "Unsupported item type.")
         return redirect("planner:dashboard")
     item = get_object_or_404(model, pk=pk, user=request.user)
-    item.is_done = not item.is_done
-    item.save(update_fields=["is_done"])
+    if isinstance(item, Chore):
+        if item.is_done:
+            item.is_done = False
+            item.save(update_fields=["is_done"])
+        else:
+            item.complete()
+            item.save(update_fields=["is_done", "due_on"])
+    else:
+        item.is_done = not item.is_done
+        item.save(update_fields=["is_done"])
     return redirect("planner:dashboard")
 
 

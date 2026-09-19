@@ -1,7 +1,16 @@
+import calendar
 import datetime
 
 from django.conf import settings
 from django.db import models
+
+
+def _next_month(value):
+    month_index = value.month
+    year = value.year + month_index // 12
+    month = month_index % 12 + 1
+    day = min(value.day, calendar.monthrange(year, month)[1])
+    return value.replace(year=year, month=month, day=day)
 
 
 class HouseholdCategory(models.TextChoices):
@@ -99,6 +108,24 @@ class Chore(models.Model):
 
     def __str__(self):
         return self.title
+
+    def complete(self, *, today=None):
+        """Complete a routine, rescheduling recurring work instead of losing it."""
+        if self.frequency == self.Frequency.ONCE:
+            self.is_done = True
+            return
+
+        anchor = max(self.due_on, today or datetime.date.today())
+        if self.frequency == self.Frequency.DAILY:
+            self.due_on = anchor + datetime.timedelta(days=1)
+        elif self.frequency == self.Frequency.WEEKLY:
+            self.due_on = anchor + datetime.timedelta(days=7)
+        elif self.frequency == self.Frequency.MONTHLY:
+            self.due_on = _next_month(anchor)
+        else:
+            raise ValueError(f"Unsupported chore frequency: {self.frequency}")
+
+        self.is_done = False
 
 
 class MealPlanEntry(models.Model):

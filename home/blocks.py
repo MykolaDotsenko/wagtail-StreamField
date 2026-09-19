@@ -1,5 +1,5 @@
 from wagtail import blocks
-from wagtail.images.blocks import ImageChooserBlock
+from wagtail.images.blocks import ImageBlock
 
 
 class FeatureBlock(blocks.StructBlock):
@@ -37,7 +37,7 @@ class HeroBlock(blocks.StructBlock):
         required=False, max_length=40, default="Explore recipes"
     )
     secondary_url = blocks.CharBlock(required=False, max_length=200, default="/recipes/")
-    image = ImageChooserBlock(required=False)
+    image = ImageBlock(required=False)
 
     class Meta:
         icon = "home"
@@ -63,7 +63,7 @@ class SplitFeatureBlock(blocks.StructBlock):
     eyebrow = blocks.CharBlock(required=False, max_length=60)
     title = blocks.CharBlock(max_length=100)
     text = blocks.RichTextBlock(features=["bold", "italic", "link", "ol", "ul"])
-    image = ImageChooserBlock(required=False)
+    image = ImageBlock(required=False)
     link_label = blocks.CharBlock(required=False, max_length=40)
     link_url = blocks.CharBlock(required=False, max_length=200)
     image_on_left = blocks.BooleanBlock(required=False, default=False)
