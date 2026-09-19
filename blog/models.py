@@ -3,25 +3,41 @@ from django.db import models
 from modelcluster.contrib.taggit import ClusterTaggableManager
 from modelcluster.fields import ParentalKey, ParentalManyToManyField
 from taggit.models import TaggedItemBase
-from wagtail import blocks
-from wagtail.admin.panels import FieldPanel, MultiFieldPanel
-from wagtail.embeds.blocks import EmbedBlock
+from wagtail.admin.panels import FieldPanel, InlinePanel, MultiFieldPanel
 from wagtail.fields import RichTextField, StreamField
-from wagtail.images.blocks import ImageChooserBlock
 from wagtail.models import Orderable, Page
 from wagtail.search import index
 from wagtail.snippets.models import register_snippet
 
+from content.blocks import GuideBodyBlock
+
 
 class BlogIndexPage(Page):
-    intro = RichTextField(blank=True)
+    intro = RichTextField(
+        blank=True,
+        features=["bold", "italic", "link", "ul", "ol"],
+        help_text="Briefly explain what readers can learn from this guide library.",
+    )
+
+    parent_page_types = ["home.HomePage"]
+    subpage_types = ["blog.BlogPage", "blog.BlogTagIndexPage"]
+
+    content_panels = Page.content_panels + [
+        FieldPanel("intro"),
+    ]
 
     def get_context(self, request):
         context = super().get_context(request)
-        context["blogpages"] = self.get_children().live().order_by("-first_published_at")
+        context["blogpages"] = (
+            BlogPage.objects.child_of(self)
+            .live()
+            .order_by("-first_published_at")
+            .prefetch_related("authors", "gallery_images")
+        )
         return context
 
-    content_panels = Page.content_panels + ["intro"]
+    class Meta:
+        verbose_name = "Guide library"
 
 
 class BlogPageTag(TaggedItemBase):
@@ -33,51 +49,68 @@ class BlogPageTag(TaggedItemBase):
 
 
 class BlogPage(Page):
-    date = models.DateField("Post date")
-    intro = models.CharField(max_length=250)
+    class GuideType(models.TextChoices):
+        GENERAL = "general", "General"
+        CLEANING = "cleaning", "Cleaning"
+        FOOD_STORAGE = "food_storage", "Food storage"
+        ORGANIZATION = "organization", "Organization"
+        MAINTENANCE = "maintenance", "Home maintenance"
+        SEASONAL = "seasonal", "Seasonal"
+
+    date = models.DateField(
+        "Published date",
+        help_text="Use the editorial date readers should associate with this guide.",
+    )
+    guide_type = models.CharField(
+        max_length=20,
+        choices=GuideType.choices,
+        default=GuideType.GENERAL,
+        help_text="Used for editorial context and Discover filtering.",
+    )
+    intro = models.CharField(
+        max_length=250,
+        help_text="One concise promise: what useful outcome will the reader get?",
+    )
     authors = ParentalManyToManyField("blog.Author", blank=True)
     tags = ClusterTaggableManager(through=BlogPageTag, blank=True)
     body = StreamField(
-        [
-            (
-                "heading",
-                blocks.CharBlock(
-                    form_classname="full title",
-                    template="blog/streamfield/blocks/heading_block.html",
-                ),
-            ),
-            ("paragraph", blocks.RichTextBlock()),
-            (
-                "image",
-                ImageChooserBlock(template="blog/streamfield/blocks/image_block.html"),
-            ),
-            ("quote", blocks.BlockQuoteBlock()),
-            ("embed", EmbedBlock()),
-        ],
+        GuideBodyBlock(),
         use_json_field=True,
+        help_text="Build the guide from structured blocks. Prefer actionable blocks over free-form layout.",
     )
 
+    parent_page_types = ["blog.BlogIndexPage"]
+    subpage_types = []
+
     search_fields = Page.search_fields + [
-        index.SearchField("intro"),
+        index.SearchField("intro", boost=1.5),
         index.SearchField("body"),
+        index.SearchField("get_guide_type_display"),
+        index.FilterField("guide_type"),
     ]
 
     content_panels = Page.content_panels + [
         MultiFieldPanel(
             [
                 FieldPanel("date"),
+                FieldPanel("guide_type"),
                 FieldPanel("authors", widget=forms.CheckboxSelectMultiple),
                 FieldPanel("tags"),
             ],
-            heading="Blog information",
+            heading="Guide information",
         ),
         FieldPanel("intro"),
         FieldPanel("body"),
+        InlinePanel("gallery_images", label="Legacy gallery images"),
     ]
 
     def main_image(self):
         gallery_item = self.gallery_images.first()
         return gallery_item.image if gallery_item else None
+
+    class Meta:
+        verbose_name = "Home guide"
+        verbose_name_plural = "Home guides"
 
 
 class BlogPageGalleryImage(Orderable):
@@ -94,8 +127,8 @@ class BlogPageGalleryImage(Orderable):
     caption = models.CharField(blank=True, max_length=250)
 
     panels = [
-        "image",
-        "caption",
+        FieldPanel("image"),
+        FieldPanel("caption"),
     ]
 
 
@@ -111,8 +144,8 @@ class Author(models.Model):
     )
 
     panels = [
-        "name",
-        "author_image",
+        FieldPanel("name"),
+        FieldPanel("author_image"),
     ]
 
     def __str__(self):
@@ -123,8 +156,19 @@ class Author(models.Model):
 
 
 class BlogTagIndexPage(Page):
+    parent_page_types = ["blog.BlogIndexPage"]
+    subpage_types = []
+
     def get_context(self, request):
         tag = request.GET.get("tag")
         context = super().get_context(request)
-        context["blogpages"] = BlogPage.objects.filter(tags__name=tag)
+        context["blogpages"] = (
+            BlogPage.objects.live()
+            .filter(tags__name=tag)
+            .distinct()
+            .order_by("-first_published_at")
+        )
         return context
+
+    class Meta:
+        verbose_name = "Guide topic index"
