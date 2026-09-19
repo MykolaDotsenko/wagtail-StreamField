@@ -22,6 +22,7 @@ from .selectors import (
     pantry_snapshot,
     routine_snapshot,
     shopping_snapshot,
+    today_snapshot,
 )
 from .services import (
     StaleRoutineAction,
@@ -40,6 +41,18 @@ from .services import (
     update_pantry_item,
     update_routine,
 )
+
+
+@login_required
+def today(request):
+    return render(
+        request,
+        "household/today.html",
+        {
+            "snapshot": today_snapshot(user=request.user),
+            "today": timezone.localdate(),
+        },
+    )
 
 
 def _shopping_url(*, shopping_mode: bool = False, undo_item_id: int | None = None) -> str:

@@ -1,9 +1,16 @@
 <nav class="mobile-nav" aria-label="Primary">
     <div class="mobile-nav__inner">
-        <a class="mobile-nav__item"{% if request.path == "/" %} aria-current="page"{% endif %} href="/">
-            <span class="mobile-nav__icon" aria-hidden="true">●</span>
-            <span>Today</span>
-        </a>
+        {% if request.user.is_authenticated %}
+            <a class="mobile-nav__item"{% if request.resolver_match.namespace == "household" and request.resolver_match.url_name == "today" %} aria-current="page"{% endif %} href="{% url 'household:today' %}">
+                <span class="mobile-nav__icon" aria-hidden="true">●</span>
+                <span>Today</span>
+            </a>
+        {% else %}
+            <a class="mobile-nav__item"{% if request.path == "/" %} aria-current="page"{% endif %} href="/">
+                <span class="mobile-nav__icon" aria-hidden="true">●</span>
+                <span>Today</span>
+            </a>
+        {% endif %}
 
         {% if request.user.is_authenticated %}
             <a class="mobile-nav__item"{% if request.resolver_match.namespace == "household" and request.resolver_match.url_name == "shopping" %} aria-current="page"{% endif %} href="{% url 'household:shopping' %}">

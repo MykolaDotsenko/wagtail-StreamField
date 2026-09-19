@@ -13,7 +13,11 @@
         {% endif %}
 
         <nav class="desktop-nav" aria-label="Primary">
-            <a class="nav-link"{% if request.path == "/" %} aria-current="page"{% endif %} href="/">Today</a>
+            {% if request.user.is_authenticated %}
+                <a class="nav-link"{% if request.resolver_match.namespace == "household" and request.resolver_match.url_name == "today" %} aria-current="page"{% endif %} href="{% url 'household:today' %}">Today</a>
+            {% else %}
+                <a class="nav-link"{% if request.path == "/" %} aria-current="page"{% endif %} href="/">Today</a>
+            {% endif %}
 
             {% if request.user.is_authenticated %}
                 <a class="nav-link"{% if request.resolver_match.namespace == "household" and request.resolver_match.url_name == "shopping" %} aria-current="page"{% endif %} href="{% url 'household:shopping' %}">Shopping</a>

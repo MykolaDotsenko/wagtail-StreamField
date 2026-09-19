@@ -256,7 +256,7 @@ Invariant:
 
 ## Today attention feed
 
-Today is a read model, not necessarily a persisted table.
+Implemented in PR6 as a derived read model. No Today table is persisted.
 
 Candidate signals:
 - expired/use-soon pantry;
@@ -265,7 +265,15 @@ Candidate signals:
 - shopping list readiness;
 - optional useful recommendation.
 
-Priority must be deterministic.
+PR6 priority is deterministic:
+1. overdue routine;
+2. expired pantry;
+3. routine due today;
+4. pantry use-soon;
+5. pantry low-stock;
+6. shopping summary.
+
+The feed is capped at six visible signals; total attention count is retained separately.
 
 Avoid scoring systems that look intelligent but are arbitrary.
 

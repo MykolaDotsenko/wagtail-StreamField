@@ -108,6 +108,16 @@ Today aggregates pantry, routine, shopping and meal state.
 
 Compute/select Today signals from domain state rather than persisting duplicate dashboard rows.
 
+PR6 defines deterministic priority:
+1. overdue routine;
+2. expired pantry item;
+3. routine due today;
+4. pantry use-soon;
+5. pantry low-stock;
+6. active Shopping summary.
+
+The primary feed is capped at six signals. Pantry emits only its strongest reason. Dinner remains a neutral placeholder until meal state exists.
+
 ### Consequences
 
 Positive:
