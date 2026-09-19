@@ -12,6 +12,7 @@ urlpatterns = [
     path("admin/", include(wagtailadmin_urls)),
     path("accounts/", include("django.contrib.auth.urls")),
     path("documents/", include(wagtaildocs_urls)),
+    path("home/", include("household.urls")),
     path("search/", search_views.search, name="search"),
 ]
 
