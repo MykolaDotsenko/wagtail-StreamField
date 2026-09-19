@@ -66,8 +66,14 @@ At minimum:
 - template/static checks where applicable;
 - accessibility smoke checks when browser suite is added.
 
-Before production-readiness:
-- run CI with PostgreSQL.
+Production-readiness gates:
+- SQLite/Python 3.12–3.14 matrix;
+- full PostgreSQL integration suite;
+- production `check --deploy`;
+- production `collectstatic`;
+- Python dependency audit;
+- Chromium golden journey;
+- automated Axe WCAG 2.2 AA smoke checks.
 
 ## Coverage
 
@@ -77,7 +83,7 @@ Target:
 - high coverage of domain services and invariants;
 - no requirement to test framework internals merely to reach a number.
 
-A global threshold can be introduced once the suite is stable.
+PR12 enforces a global branch-coverage report threshold of **80%** while retaining the stronger rule: domain/security invariants matter more than exercising framework internals for vanity coverage.
 
 ## Security rules
 
@@ -197,13 +203,18 @@ The editor should prevent common content-quality errors rather than merely docum
 
 ## Performance quality
 
-Budgets are directional until measured:
+Budgets:
 - minimal custom JS;
 - no large animation framework without justified need;
 - responsive image renditions;
 - avoid N+1 queries;
 - avoid unbounded lists;
-- no unnecessary third-party scripts.
+- no unnecessary third-party scripts;
+- meal recipe picker query count must remain O(1) with recipe count;
+- seven-day meal plan readiness must not add a Pantry query per planned day;
+- private Discover performs at most one bounded relational query per private domain.
+
+PR12 includes query-budget regression tests for these composed read models.
 
 ## Manual review matrix
 

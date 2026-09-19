@@ -7,7 +7,10 @@ from wagtail.documents import urls as wagtaildocs_urls
 
 from search import views as search_views
 
+from .health import health
+
 urlpatterns = [
+    path("health/", health, name="health"),
     path("django-admin/", admin.site.urls),
     path("admin/", include(wagtailadmin_urls)),
     path("accounts/", include("django.contrib.auth.urls")),

@@ -55,6 +55,12 @@ class RecipeReadinessSnapshot:
 
 
 @dataclass(frozen=True)
+class PantryReadinessLookup:
+    by_ingredient: dict[int, PantryItem]
+    by_name: dict[str, PantryItem]
+
+
+@dataclass(frozen=True)
 class AddRecipeShoppingResult:
     added_count: int
     existing_count: int
@@ -137,21 +143,48 @@ def _line_readiness(*, line, pantry_item: PantryItem | None, today) -> RecipeIng
     )
 
 
-def recipe_readiness(*, recipe, user, today=None) -> RecipeReadinessSnapshot:
-    today = today or timezone.localdate()
-    pantry_items = list(
-        PantryItem.objects.filter(user=user).select_related("ingredient").order_by("pk")
+def pantry_readiness_lookup_from_items(pantry_items) -> PantryReadinessLookup:
+    by_ingredient = {}
+    by_name = {}
+
+    for item in pantry_items:
+        if item.ingredient_id is not None:
+            by_ingredient[item.ingredient_id] = item
+        else:
+            by_name[item.normalized_name] = item
+
+    return PantryReadinessLookup(
+        by_ingredient=by_ingredient,
+        by_name=by_name,
     )
-    by_ingredient = {
-        item.ingredient_id: item for item in pantry_items if item.ingredient_id is not None
-    }
-    by_name = {item.normalized_name: item for item in pantry_items if item.ingredient_id is None}
+
+
+def pantry_readiness_lookup(*, user) -> PantryReadinessLookup:
+    pantry_items = PantryItem.objects.filter(user=user).select_related("ingredient").order_by("pk")
+    return pantry_readiness_lookup_from_items(pantry_items)
+
+
+def recipe_readiness(
+    *,
+    recipe,
+    user,
+    today=None,
+    pantry_lookup: PantryReadinessLookup | None = None,
+    ingredient_lines=None,
+) -> RecipeReadinessSnapshot:
+    today = today or timezone.localdate()
+    pantry_lookup = pantry_lookup or pantry_readiness_lookup(user=user)
+    if ingredient_lines is None:
+        ingredient_lines = recipe.ingredient_lines.select_related("ingredient").order_by(
+            "sort_order",
+            "pk",
+        )
 
     entries = []
-    for line in recipe.ingredient_lines.select_related("ingredient").order_by("sort_order", "pk"):
-        pantry_item = by_ingredient.get(line.ingredient_id)
+    for line in ingredient_lines:
+        pantry_item = pantry_lookup.by_ingredient.get(line.ingredient_id)
         if pantry_item is None:
-            pantry_item = by_name.get(line.ingredient.normalized_name)
+            pantry_item = pantry_lookup.by_name.get(line.ingredient.normalized_name)
         entries.append(_line_readiness(line=line, pantry_item=pantry_item, today=today))
 
     items = tuple(entries)

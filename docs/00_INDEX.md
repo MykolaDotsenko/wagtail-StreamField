@@ -21,6 +21,7 @@ The documentation is split by responsibility to avoid duplicated or conflicting 
 | Delivery | [07_IMPLEMENTATION_ROADMAP.md](./07_IMPLEMENTATION_ROADMAP.md) | In what PR order do we build the product? |
 | Official references | [08_REFERENCE.md](./08_REFERENCE.md) | Which official documentation governs implementation choices? |
 | Decisions | [09_ADR_LOG.md](./09_ADR_LOG.md) | Which architectural/product decisions are locked and why? |
+| Deployment | [11_DEPLOYMENT_RUNBOOK.md](./11_DEPLOYMENT_RUNBOOK.md) | How is the production baseline configured, verified and operated? |
 
 ## Mandatory workflow for every PR
 
