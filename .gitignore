@@ -1,0 +1,42 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.python-version
+.venv/
+venv/
+env/
+ENV/
+pip-wheel-metadata/
+*.egg-info/
+dist/
+build/
+
+# Django
+*.sqlite3
+media/
+static/
+
+# Secrets / local settings
+.env
+.env.*
+!.env.example
+mysite/settings/local.py
+
+# Tests / quality
+.coverage
+coverage.xml
+htmlcov/
+.pytest_cache/
+.ruff_cache/
+
+# Editors / OS
+.idea/
+.vscode/
+.DS_Store
+*.swp
+
+# Logs / temp
+*.log
+tmp/

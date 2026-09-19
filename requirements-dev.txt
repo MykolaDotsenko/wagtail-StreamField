@@ -1,0 +1,4 @@
+-r requirements.txt
+coverage==7.16.1
+pip-audit==2.10.1
+ruff==0.16.8

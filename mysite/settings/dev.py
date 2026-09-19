@@ -1,16 +1,26 @@
-from .base import *
+import os
 
-# SECURITY WARNING: don't run with debug turned on in production!
+from .base import *
+from .utils import env_list
+
 DEBUG = True
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = "django-insecure-1rgaq5ofvy+k#_ephzy&08)!#r-8x6a@twzx!##e(m8_*-q)-0"
+SECRET_KEY = os.environ.get(
+    "DJANGO_SECRET_KEY",
+    "django-insecure-domonest-development-only-key-not-for-production",
+)
 
-# SECURITY WARNING: define the correct hosts in production!
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = env_list(
+    "DJANGO_ALLOWED_HOSTS",
+    default=("localhost", "127.0.0.1", "[::1]"),
+)
+
+WAGTAILADMIN_BASE_URL = os.environ.get(
+    "WAGTAILADMIN_BASE_URL",
+    "http://localhost:8000",
+)
 
 EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
-
 
 try:
     from .local import *

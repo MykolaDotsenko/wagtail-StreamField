@@ -1,0 +1,30 @@
+version: 2
+updates:
+  - package-ecosystem: pip
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "07:00"
+      timezone: "Europe/Helsinki"
+    open-pull-requests-limit: 5
+    groups:
+      python-runtime:
+        patterns:
+          - "Django"
+          - "wagtail"
+          - "gunicorn"
+      python-quality:
+        patterns:
+          - "coverage"
+          - "pip-audit"
+          - "ruff"
+
+  - package-ecosystem: github-actions
+    directory: "/"
+    schedule:
+      interval: weekly
+      day: monday
+      time: "07:15"
+      timezone: "Europe/Helsinki"
+    open-pull-requests-limit: 3
