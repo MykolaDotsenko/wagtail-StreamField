@@ -661,10 +661,25 @@
         text-decoration: none;
     }
 
-    .item-row__title::after {
+    .item-row--link .item-row__title::after {
         position: absolute;
         inset: 0;
         content: "";
+    }
+
+    .item-row__media {
+        width: 3rem;
+        height: 3rem;
+        flex: 0 0 auto;
+        overflow: hidden;
+        border-radius: var(--radius-sm);
+        background: var(--color-surface-subtle);
+    }
+
+    .item-row__media img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
     }
 
     .item-row--link:hover {
