@@ -24,7 +24,7 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 ("name", models.CharField(max_length=120)),
-                ("normalized_name", models.CharField(editable=False, max_length=120)),
+                ("normalized_name", models.CharField(editable=False, max_length=255)),
                 ("quantity", models.PositiveIntegerField(default=1)),
                 (
                     "category",
