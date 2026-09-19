@@ -49,6 +49,8 @@ services:
           property: port
       - key: POSTGRES_CONN_MAX_AGE
         value: "60"
+      - key: DOMONEST_RUN_MIGRATIONS_ON_START
+        value: "true"
       - key: DOMONEST_AUTO_SEED_DEMO
         value: "true"
       - key: DOMONEST_DEMO_USERNAME
