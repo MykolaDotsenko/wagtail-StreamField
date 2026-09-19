@@ -223,10 +223,7 @@ class MealPlanForm(forms.Form):
         self.today = today or timezone.localdate()
         self.fields["recipe"].choices = [
             ("", "Choose a recipe"),
-            *[
-                (str(option.recipe.pk), option.selection_label)
-                for option in recipe_options
-            ],
+            *[(str(option.recipe.pk), option.selection_label) for option in recipe_options],
         ]
 
     def clean_date(self):
