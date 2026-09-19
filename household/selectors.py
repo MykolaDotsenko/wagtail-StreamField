@@ -120,11 +120,7 @@ def pantry_snapshot(*, user, today=None) -> PantrySnapshot:
         (entry for entry in entries if entry.needs_attention),
         key=attention_key,
     )
-    other = [
-        entry
-        for entry in entries
-        if not entry.needs_attention
-    ]
+    other = [entry for entry in entries if not entry.needs_attention]
 
     return PantrySnapshot(
         attention_items=tuple(attention),
