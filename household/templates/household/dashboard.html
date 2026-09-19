@@ -1,0 +1,84 @@
+{% extends "base.html" %}
+
+{% block title %}Household dashboard{% endblock %}
+{% block body_class %}app-page{% endblock %}
+
+{% block content %}
+<section class="app-shell">
+    <header class="dashboard-hero">
+        <div>
+            <p class="eyebrow">{{ today|date:"l, j F" }}</p>
+            <h1>Good to see you, {{ request.user.first_name|default:request.user.username }}.</h1>
+            <p>Everything that needs attention at home, without the mental clutter.</p>
+        </div>
+        <form action="{% url 'logout' %}" method="post">{% csrf_token %}<button class="text-button" type="submit">Sign out</button></form>
+    </header>
+
+    <div class="metric-grid">
+        <article><span>Shopping</span><strong>{{ shopping_open }}</strong><small>items still to buy</small></article>
+        <article><span>Pantry</span><strong>{{ low_stock_count }}</strong><small>running low</small></article>
+        <article><span>Use soon</span><strong>{{ expiring_count }}</strong><small>expiring within 3 days</small></article>
+        <article><span>Routines</span><strong>{{ chores_due }}</strong><small>due or overdue</small></article>
+    </div>
+
+    <div class="workspace-grid">
+        <section class="workspace-card" id="shopping">
+            <div class="card-heading"><div><p class="eyebrow">Quick list</p><h2>🛒 Shopping</h2></div><span class="count-pill">{{ shopping_open }} open</span></div>
+            <form method="post" class="compact-form">
+                {% csrf_token %}<input type="hidden" name="form_type" value="shopping">
+                {{ shopping_form.as_div }}
+                <button class="button button-primary" type="submit">Add item</button>
+            </form>
+            <div class="item-list">
+                {% for item in shopping_items %}
+                    <article class="list-row {% if item.is_done %}is-done{% endif %}">
+                        <form method="post" action="{% url 'household:toggle_shopping' item.pk %}">{% csrf_token %}<button class="check-button" aria-label="Toggle {{ item.name }}">✓</button></form>
+                        <div><strong>{{ item.name }}</strong><small>{{ item.quantity }} · {{ item.get_category_display }}</small></div>
+                        <form method="post" action="{% url 'household:delete_item' 'shopping' item.pk %}">{% csrf_token %}<button class="icon-button" aria-label="Delete {{ item.name }}">×</button></form>
+                    </article>
+                {% empty %}<div class="empty-state"><span>🧺</span><strong>Your list is clear.</strong><p>Add the next thing you do not want to forget.</p></div>{% endfor %}
+            </div>
+        </section>
+
+        <section class="workspace-card" id="pantry">
+            <div class="card-heading"><div><p class="eyebrow">Waste less</p><h2>🥫 Pantry</h2></div><span class="count-pill">{{ pantry_items|length }} items</span></div>
+            <form method="post" class="compact-form">
+                {% csrf_token %}<input type="hidden" name="form_type" value="pantry">
+                {{ pantry_form.as_div }}
+                <button class="button button-primary" type="submit">Track item</button>
+            </form>
+            <div class="item-list">
+                {% for item in pantry_items %}
+                    <article class="list-row">
+                        <span class="status-dot {% if item.is_low_stock %}warning{% elif item.expires_soon %}attention{% endif %}"></span>
+                        <div><strong>{{ item.name }}</strong><small>{{ item.quantity|floatformat:"-2" }} {{ item.unit }}{% if item.expires_on %} · expires {{ item.expires_on|date:"j M" }}{% endif %}</small></div>
+                        <form method="post" action="{% url 'household:delete_item' 'pantry' item.pk %}">{% csrf_token %}<button class="icon-button" aria-label="Delete {{ item.name }}">×</button></form>
+                    </article>
+                {% empty %}<div class="empty-state"><span>🥕</span><strong>Nothing tracked yet.</strong><p>Add staples to surface low-stock and use-soon signals.</p></div>{% endfor %}
+            </div>
+        </section>
+
+        <section class="workspace-card workspace-wide" id="chores">
+            <div class="card-heading"><div><p class="eyebrow">Small routines</p><h2>🧺 Home rhythm</h2></div><span class="count-pill">{{ chores_due }} due</span></div>
+            <form method="post" class="compact-form compact-form-horizontal">
+                {% csrf_token %}<input type="hidden" name="form_type" value="chore">
+                {{ chore_form.as_div }}
+                <button class="button button-primary" type="submit">Add routine</button>
+            </form>
+            <div class="chore-grid">
+                {% for chore in chores %}
+                    <article class="chore-card {% if chore.is_done %}is-done{% endif %} {% if chore.is_overdue %}is-overdue{% endif %}">
+                        <div class="chore-top"><span>{{ chore.get_room_display }}</span><small>{{ chore.get_frequency_display }}</small></div>
+                        <h3>{{ chore.title }}</h3>
+                        <p>Due {{ chore.due_on|date:"D, j M" }}</p>
+                        <div class="row-actions">
+                            <form method="post" action="{% url 'household:toggle_chore' chore.pk %}">{% csrf_token %}<button class="button button-secondary" type="submit">{% if chore.is_done %}Reopen{% else %}Done{% endif %}</button></form>
+                            <form method="post" action="{% url 'household:delete_item' 'chore' chore.pk %}">{% csrf_token %}<button class="text-button" type="submit">Remove</button></form>
+                        </div>
+                    </article>
+                {% empty %}<div class="empty-state"><span>✨</span><strong>No routines yet.</strong><p>Add one recurring task that makes tomorrow easier.</p></div>{% endfor %}
+            </div>
+        </section>
+    </div>
+</section>
+{% endblock %}
