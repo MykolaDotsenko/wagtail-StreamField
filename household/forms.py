@@ -9,6 +9,7 @@ class ShoppingItemCreateForm(forms.Form):
         max_length=120,
         strip=True,
         label="Item",
+        error_messages={"required": "Enter an item to add."},
     )
     quantity = forms.IntegerField(
         min_value=1,
