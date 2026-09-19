@@ -139,7 +139,9 @@ class ActionBlock(blocks.StructBlock):
         if has_page == has_url:
             raise blocks.StructBlockValidationError(
                 non_block_errors=[
-                    ValidationError("Choose exactly one destination: an internal page or an external URL.")
+                    ValidationError(
+                        "Choose exactly one destination: an internal page or an external URL."
+                    )
                 ]
             )
         return result
