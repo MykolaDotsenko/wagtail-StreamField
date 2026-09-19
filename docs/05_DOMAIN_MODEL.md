@@ -32,24 +32,34 @@ Canonical ingredient identity usable by recipes and pantry/shopping reconciliati
 
 ## Shopping
 
-Suggested fields:
-- owner/household;
-- normalized item identity;
+Implemented in PR3:
+- direct user ownership for the MVP;
 - display name;
-- quantity;
-- unit optional;
+- normalized item identity;
+- integer quantity;
 - category;
-- state;
-- created_at;
-- completed_at.
+- `OPEN / COMPLETED` state;
+- `completed_at`;
+- `deleted_at` for reversible removal;
+- created/updated timestamps.
+
+Unit-aware quantities are intentionally deferred until pantry/recipe integration creates a real need.
 
 ### Invariants
 
-1. Quantity must be positive when precise quantity is used.
-2. User cannot mutate another household's item.
-3. Duplicate open equivalent items should merge where identity is confidently equivalent.
-4. Completing an item must be reversible.
-5. Completed items are not used as active shopping demand.
+1. Quantity is at least 1.
+2. Normalized identity cannot be empty.
+3. User cannot mutate another user's item.
+4. At most one non-deleted `OPEN` item exists per user + normalized identity.
+5. `OPEN` requires `completed_at IS NULL`.
+6. `COMPLETED` requires `completed_at IS NOT NULL`.
+7. Equivalent Quick Add requests merge quantity rather than create active duplicates.
+8. Completing an item is reversible.
+9. Reopening into an already-existing equivalent open item merges quantities.
+10. Completed items are not used as active shopping demand.
+11. Removal is distinct from completion and is initially soft-deleted so it can be undone.
+
+Database constraints protect invariants 1–6 where applicable.
 
 ### State
 
