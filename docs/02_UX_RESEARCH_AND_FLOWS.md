@@ -242,17 +242,28 @@ Never imply algorithmic intelligence beyond implemented deterministic ranking.
 
 ## Flow 6 — Recipe → shopping
 
+Implemented in PR9.
+
 1. User opens RecipePage.
-2. Recipe ingredients are compared to current user's pantry.
-3. Each ingredient shows state: available / low / missing.
-4. User selects "Add missing items".
-5. System performs idempotent merge into active shopping list.
-6. User sees confirmation with count and optional "View list".
-7. User stays on recipe.
+2. Authenticated users get an owner-scoped Pantry comparison.
+3. Each ingredient shows one explicit state:
+   - At home;
+   - Running low;
+   - Missing;
+   - Check stock.
+4. UNKNOWN/"Check stock" is deliberately non-automated: the system does not pretend approximate, expired or incompatible-unit stock is sufficient.
+5. Optional missing ingredients are visible but excluded from automatic Shopping demand.
+6. User selects "Add N needed items to Shopping".
+7. Only MISSING + LOW non-optional ingredients are ensured on the active Shopping list.
+8. User sees confirmation and remains on the recipe.
 
-### Duplicate rule
+Anonymous readers still get the full public recipe. Pantry comparison remains private behind authentication.
 
-If an equivalent open shopping item exists, merge or preserve it according to the domain rule in `05_DOMAIN_MODEL.md`; never create silent duplicates.
+### Duplicate and retry rule
+
+Recipe → Shopping is idempotent. It reuses canonical Ingredient links first and conservative normalized-name identity second. Repeated POSTs do not increase Shopping quantity or create duplicate active demand.
+
+UNKNOWN is never auto-added.
 
 ## Flow 7 — Home routines
 
