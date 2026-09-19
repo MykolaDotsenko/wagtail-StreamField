@@ -1,3 +1,5 @@
+from datetime import timedelta
+
 from django.contrib.auth import get_user_model
 from django.db import connection
 from django.test import TestCase
@@ -26,7 +28,7 @@ class DiscoverQueryBudgetTests(TestCase):
             )
             MealPlanEntry.objects.create(
                 user=user,
-                date=today + timezone.timedelta(days=number),
+                date=today + timedelta(days=number),
                 name=f"Find dinner {number}",
             )
 
