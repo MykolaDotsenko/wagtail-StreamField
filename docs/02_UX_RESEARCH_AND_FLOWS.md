@@ -255,6 +255,8 @@ If an equivalent open shopping item exists, merge or preserve it according to th
 
 A routine is a recurring definition; a completion is history.
 
+PR5 names the product surface **Home rhythm**. High-frequency view is split into Due now and Upcoming. Due cards expose Done / Skip / Postpone / Edit; archive lives only in Edit. Postpone is explicitly one-off and does not alter cadence.
+
 Routine card displays:
 - title;
 - room;
