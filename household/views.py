@@ -2,19 +2,24 @@ from urllib.parse import urlencode
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.db import IntegrityError
 from django.http import Http404
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_POST
 
-from .forms import ShoppingItemCreateForm
-from .models import ShoppingItem
-from .selectors import deleted_shopping_item_for_undo, shopping_snapshot
+from .forms import PantryItemForm, ShoppingItemCreateForm
+from .models import PantryItem, ShoppingItem
+from .selectors import deleted_shopping_item_for_undo, pantry_snapshot, shopping_snapshot
 from .services import (
+    add_pantry_item_to_shopping,
     add_shopping_item,
+    create_pantry_item,
+    delete_pantry_item,
     delete_shopping_item,
     restore_shopping_item,
     toggle_shopping_item,
+    update_pantry_item,
 )
 
 
@@ -122,3 +127,106 @@ def restore_item(request, item_id):
         messages.success(request, f"{result.item.name} restored.")
 
     return redirect("household:shopping")
+
+
+@login_required
+def pantry(request):
+    form = PantryItemForm(request.POST or None, user=request.user)
+
+    if request.method == "POST" and form.is_valid():
+        try:
+            item = create_pantry_item(user=request.user, data=form.cleaned_data)
+        except IntegrityError:
+            form.add_error("name", "This item is already in your pantry.")
+        else:
+            messages.success(request, f"{item.name} added to pantry.")
+            return redirect("household:pantry")
+
+    return render(
+        request,
+        "household/pantry.html",
+        {
+            "form": form,
+            "snapshot": pantry_snapshot(user=request.user),
+        },
+    )
+
+
+def _pantry_initial(item):
+    return {
+        "name": item.name,
+        "category": item.category,
+        "quantity_mode": item.quantity_mode,
+        "approximate_level": item.approximate_level,
+        "amount": item.amount,
+        "unit": item.unit,
+        "low_stock_threshold": item.low_stock_threshold,
+        "expires_on": item.expires_on,
+    }
+
+
+@login_required
+def edit_pantry_item(request, item_id):
+    try:
+        item = PantryItem.objects.get(pk=item_id, user=request.user)
+    except PantryItem.DoesNotExist as exc:
+        raise Http404 from exc
+
+    form = PantryItemForm(
+        request.POST or None,
+        user=request.user,
+        instance=item,
+        initial=_pantry_initial(item),
+    )
+
+    if request.method == "POST" and form.is_valid():
+        try:
+            item = update_pantry_item(
+                user=request.user,
+                item_id=item.pk,
+                data=form.cleaned_data,
+            )
+        except IntegrityError:
+            form.add_error("name", "This item is already in your pantry.")
+        else:
+            messages.success(request, f"{item.name} updated.")
+            return redirect("household:pantry")
+
+    return render(
+        request,
+        "household/pantry_edit.html",
+        {
+            "form": form,
+            "item": item,
+        },
+    )
+
+
+@login_required
+@require_POST
+def remove_pantry_item(request, item_id):
+    try:
+        item = delete_pantry_item(user=request.user, item_id=item_id)
+    except PantryItem.DoesNotExist as exc:
+        raise Http404 from exc
+
+    messages.success(request, f"{item.name} removed from pantry.")
+    return redirect("household:pantry")
+
+
+@login_required
+@require_POST
+def pantry_to_shopping(request, item_id):
+    try:
+        result = add_pantry_item_to_shopping(user=request.user, item_id=item_id)
+    except PantryItem.DoesNotExist as exc:
+        raise Http404 from exc
+
+    if result.created:
+        messages.success(request, f"{result.item.name} added to Shopping.")
+    else:
+        messages.success(
+            request,
+            f"{result.item.name} was already on Shopping — quantity updated.",
+        )
+    return redirect("household:pantry")
