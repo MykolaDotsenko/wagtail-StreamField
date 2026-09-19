@@ -279,6 +279,30 @@ PR4 introduces `ensure_shopping_item()` as a stable idempotent command boundary.
 
 ---
 
+## 2026-09-19 — How should recurring routines preserve cadence?
+
+Area: Domain / UX
+Status: Validated in PR5
+Confidence: High
+
+### Question
+
+Should completing or postponing a routine reschedule from the action date, or preserve its intended cadence?
+
+### Evidence
+
+Rescheduling from every action causes drift: a monthly 31st routine postponed to the 2nd would silently become a 2nd-of-month routine. Repeated stale submissions can also accidentally process a newly advanced occurrence if the current schedule is not revalidated.
+
+### Finding
+
+Store the cadence date separately from a one-off postponed date. Monthly recurrence carries an explicit anchor day. Terminal actions advance from cadence, but overdue backlog collapses to the first future recurrence. Browser mutations include an expected scheduled occurrence and are rejected when stale.
+
+### Product/engineering impact
+
+PR5 implements Routine + RoutineEvent, stale-action checks under transaction locks, and calendar-safe month arithmetic.
+
+---
+
 ## Open research backlog
 
 These questions should be answered only when their PR approaches:
@@ -286,7 +310,7 @@ These questions should be answered only when their PR approaches:
 1. Should progressive interactions use minimal vanilla JS or HTMX?
 2. What normalized ingredient identity is sufficient for the MVP without creating an ontology project?
 3. What is the clearest non-technical Wagtail authoring workflow for RecipePage ingredients?
-4. Which recurrence representation keeps daily/weekly/monthly routines simple while remaining migration-friendly?
+4. [Resolved PR5] Use a Routine cadence row + immutable RoutineEvent history; keep postponed_until separate from due_on and retain a monthly anchor day.
 5. Should shopping purchase history be retained indefinitely or summarized?
 6. What exact Today signal priority performs best once all modules exist?
 7. What PostgreSQL/search strategy is justified at portfolio/demo scale?

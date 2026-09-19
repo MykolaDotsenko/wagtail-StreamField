@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}Edit {{ routine.title }}{% endblock %}
+{% block body_class %}template-routine-edit{% endblock %}
+
+{% block content %}
+<section class="page-heading page-heading--compact" aria-labelledby="routine-edit-title">
+    <p class="eyebrow">Home rhythm</p>
+    <h1 id="routine-edit-title">Edit {{ routine.title }}</h1>
+    <p class="lede">Editing the schedule clears any one-off postponement and starts from the new rule.</p>
+</section>
+
+<section class="surface-panel routine-edit-card">
+    <form method="post" class="stack" novalidate>
+        {% csrf_token %}
+        {% include "household/_routine_form_fields.html" with expanded=True %}
+        <div class="cluster">
+            <button class="button button--primary" type="submit">Save routine</button>
+            <a class="button button--ghost" href="{% url 'household:routines' %}">Cancel</a>
+        </div>
+    </form>
+
+    <div class="danger-zone">
+        <div>
+            <strong>Archive routine</strong>
+            <p class="meta-text">Stops future due dates while keeping its history.</p>
+        </div>
+        <form method="post" action="{% url 'household:archive_routine' routine.pk %}">
+            {% csrf_token %}
+            <button class="button button--danger" type="submit">Archive</button>
+        </form>
+    </div>
+</section>
+{% endblock %}
