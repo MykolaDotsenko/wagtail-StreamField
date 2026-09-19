@@ -8,7 +8,6 @@ from blog.models import BlogPage
 from household.models import MealPlanEntry, PantryItem, Routine, ShoppingItem
 from recipes.models import RecipePage
 
-
 SEARCH_KINDS = {"all", "recipes", "guides", "home"}
 SEARCH_LIMIT_PER_GROUP = 8
 DISCOVER_LIMIT_PER_GROUP = 6
