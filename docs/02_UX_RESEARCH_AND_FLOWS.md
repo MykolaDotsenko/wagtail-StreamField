@@ -1,0 +1,336 @@
+# UX Research & User Flows
+
+## UX objective
+
+DomoNest should minimize:
+- remembering;
+- navigation;
+- typing;
+- configuration;
+- repeated entry;
+- ambiguity about current state.
+
+The user should spend time **doing household work**, not maintaining household software.
+
+## UX heuristics
+
+### 1. Action before analytics
+Show what the user can do next before totals, charts or historical statistics.
+
+### 2. Progressive disclosure
+Ask for the minimum information required to complete the immediate task. Advanced fields appear only when relevant.
+
+### 3. Preserve context
+Actions such as "add missing ingredients" should confirm inline/snackbar and keep the user on the current recipe unless navigation is necessary.
+
+### 4. Safe reversibility
+Frequent low-risk actions should support Undo rather than repeated confirmation dialogs.
+
+### 5. Human time language
+Prefer "Tomorrow", "In 2 days", "2 days overdue" with exact date as secondary context.
+
+### 6. Soft urgency
+Use "Needs attention" rather than alarmist language except for genuinely dangerous states.
+
+### 7. Visible system rules
+When automation acts, explain the result:
+- "Next due Saturday."
+- "3 missing ingredients added."
+- "Milk grouped under Dairy."
+
+## Primary persona
+
+### Household manager
+
+Characteristics:
+- carries a significant share of household planning;
+- often uses the product one-handed on mobile;
+- frequently interrupted;
+- values speed over exhaustive data entry;
+- may use it while shopping or cooking;
+- does not want a complicated project-management tool.
+
+Important constraint:
+- interruption tolerance matters. Partial form input and current context should not disappear unnecessarily.
+
+## Information architecture
+
+### Desktop
+
+- Today
+- Plan
+- Shopping
+- Pantry
+- Routines
+- Discover
+- Search
+- Account
+
+### Mobile bottom navigation
+
+- Today
+- Plan
+- Quick Add
+- Home
+- Learn
+
+"Home" contains Shopping, Pantry and Routines via local navigation. This keeps the global mobile navigation compact.
+
+## Flow 1 — Today
+
+Entry:
+- login redirect;
+- primary app route;
+- optional home-screen/bookmark entry.
+
+Priority order:
+1. urgent/use-soon;
+2. due routines;
+3. unresolved shopping need;
+4. unplanned meal;
+5. one useful suggestion.
+
+Do not show more than the user can act on. A "View all" path is preferable to a dense wall.
+
+### Today card anatomy
+
+- semantic icon or status;
+- short headline;
+- concrete context;
+- exactly one primary action where possible;
+- optional secondary action;
+- no decorative metadata.
+
+Example:
+
+```
+Milk expires tomorrow
+1 L remaining
+[Use in a recipe]   [Details]
+```
+
+## Flow 2 — Quick Add
+
+Trigger:
+- central mobile action;
+- keyboard shortcut may be added on desktop later.
+
+Step 1: choose intent:
+- Shopping item
+- Pantry item
+- Routine
+- Meal
+
+Step 2:
+- focus primary field immediately;
+- minimal input;
+- smart/default classification where deterministic;
+- More options stays collapsed.
+
+Exit:
+- success confirmation;
+- user returns to previous context;
+- no forced redirect.
+
+### Shopping quick add acceptance
+
+A user can add:
+- name only;
+- in one form submission;
+- with sensible quantity/category defaults.
+
+## Flow 3 — Shopping
+
+Primary mode:
+- grouped list;
+- open items first;
+- completed items visually secondary;
+- completion is one tap.
+
+Shopping mode:
+- hides editing/recommendation noise;
+- uses large targets;
+- preserves category grouping;
+- keeps item count visible.
+
+### Completion behavior
+
+On completion:
+1. state changes immediately after successful server response;
+2. item remains visible and visually subdued;
+3. snackbar confirms;
+4. Undo is available.
+
+Never make swipe the only interaction.
+
+## Flow 4 — Pantry
+
+Pantry is **not accounting software**.
+
+Two quantity modes are planned:
+- precise: 1.5 kg;
+- approximate: full / half / low.
+
+Primary sections:
+1. Needs attention.
+2. Everything else.
+
+Attention reasons:
+- expiring soon;
+- expired;
+- low stock.
+
+Primary actions:
+- add to shopping;
+- use in recipe;
+- update quantity.
+
+## Flow 5 — Meal planning
+
+MVP plans dinner only.
+
+Mobile:
+- vertical day list;
+- one meal card per day.
+
+Desktop:
+- seven-day view may be used if it remains readable.
+
+Meal selection should prioritize:
+- pantry readiness;
+- time;
+- user-relevant tags;
+- number of missing ingredients.
+
+Never imply algorithmic intelligence beyond implemented deterministic ranking.
+
+## Flow 6 — Recipe → shopping
+
+1. User opens RecipePage.
+2. Recipe ingredients are compared to current user's pantry.
+3. Each ingredient shows state: available / low / missing.
+4. User selects "Add missing items".
+5. System performs idempotent merge into active shopping list.
+6. User sees confirmation with count and optional "View list".
+7. User stays on recipe.
+
+### Duplicate rule
+
+If an equivalent open shopping item exists, merge or preserve it according to the domain rule in `05_DOMAIN_MODEL.md`; never create silent duplicates.
+
+## Flow 7 — Home routines
+
+A routine is a recurring definition; a completion is history.
+
+Routine card displays:
+- title;
+- room;
+- due state;
+- expected effort if available;
+- recurrence;
+- completion action.
+
+Actions:
+- Done.
+- Skip this occurrence.
+- Postpone.
+- Edit routine.
+
+Completion:
+- records history;
+- calculates next due date;
+- confirms next due date.
+
+## Flow 8 — Guide → action
+
+Examples:
+- cleaning guide → add routine;
+- seasonal checklist → add selected tasks;
+- food storage guide → open pantry or add relevant item.
+
+Content should be useful even without an account, but action conversion may require login.
+
+After login, return users to the initiating content/action when feasible.
+
+## Onboarding
+
+No carousel tutorial.
+
+Step 1:
+"What would help most today?"
+- Shopping
+- Meals
+- Pantry
+- Routines
+
+Step 2:
+Take the user directly into a meaningful setup/action.
+
+Step 3:
+Show the populated Today state.
+
+Progressive onboarding should continue through contextual suggestions, not a forced wizard.
+
+## Empty states
+
+Every empty state contains:
+1. What this area is.
+2. Why it is useful.
+3. One next action.
+
+Avoid "No data".
+
+## Validation
+
+- Server-side is authoritative.
+- Field-level errors appear next to fields.
+- After submit failure, focus first invalid field.
+- Do not show errors while a user has barely begun typing.
+- Preserve submitted values.
+
+## Loading and latency
+
+Django SSR is the baseline.
+
+For progressive enhancement:
+- use local button/pending state;
+- avoid full-screen spinners;
+- disable duplicate submit only while necessary;
+- do not optimistically claim persistence before success unless rollback is implemented.
+
+## Error recovery
+
+Messages should state:
+- what failed;
+- whether user input was preserved;
+- what the user can do next.
+
+Example:
+
+"Couldn't add this item. Your entry is still here. Try again."
+
+## Accessibility interaction rules
+
+- All pointer actions have keyboard equivalents.
+- Drag-and-drop always has a non-drag alternative.
+- Focus must remain visible and not be obscured by sticky UI.
+- Status is not communicated by color alone.
+- Touch targets should aim for 44×44 CSS px, with WCAG 2.2 AA minimum always met.
+- Reduced-motion preference is respected.
+
+See `06_QUALITY_SECURITY_ACCESSIBILITY.md`.
+
+## UX review checklist
+
+For each new flow ask:
+
+1. Can the primary task be completed with fewer steps?
+2. Can a default safely remove a field?
+3. Does the user understand what changed?
+4. Can an accidental action be undone?
+5. Does mobile one-handed use work?
+6. Does keyboard-only use work?
+7. Does the user retain context?
+8. Is every visible element actionable or decision-supporting?
+9. Is there a clear empty/loading/error state?
+10. Does the flow reduce mental load rather than move it into the app?
