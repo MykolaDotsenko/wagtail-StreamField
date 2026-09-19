@@ -57,9 +57,10 @@ class MealPlanSelectorTests(TestCase):
         self.assertEqual(week.start, date(2026, 9, 14))
         self.assertEqual(week.end, date(2026, 9, 20))
         self.assertEqual(len(week.days), 7)
-        self.assertEqual([day.date for day in week.days], [
-            date(2026, 9, 14) + timedelta(days=offset) for offset in range(7)
-        ])
+        self.assertEqual(
+            [day.date for day in week.days],
+            [date(2026, 9, 14) + timedelta(days=offset) for offset in range(7)],
+        )
 
     def test_week_is_owner_scoped(self):
         MealPlanEntry.objects.create(
