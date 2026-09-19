@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags wagtailimages_tags %}
+
+{% block title %}Recipes{% endblock %}
+{% block body_class %}template-recipeindexpage{% endblock %}
+
+{% block content %}
+<section class="page-heading" aria-labelledby="recipes-title">
+    <p class="eyebrow">Plan dinner</p>
+    <h1 id="recipes-title">{{ page.title }}</h1>
+    {% if page.intro %}
+        <div class="lede prose">{{ page.intro|richtext }}</div>
+    {% else %}
+        <p class="lede">Practical recipes with structured ingredients, clear timing and cook-friendly instructions.</p>
+    {% endif %}
+</section>
+
+{% if recipes %}
+    <ul class="recipe-grid" aria-label="Recipes">
+        {% for recipe in recipes %}
+            <li class="recipe-card">
+                <a class="recipe-card__link" href="{% pageurl recipe %}">
+                    {% if recipe.hero_image %}
+                        {% image recipe.hero_image fill-720x405 as card_image %}
+                        <img
+                            class="recipe-card__image"
+                            src="{{ card_image.url }}"
+                            width="{{ card_image.width }}"
+                            height="{{ card_image.height }}"
+                            alt="{{ recipe.hero_alt_text }}"
+                            loading="lazy"
+                        >
+                    {% else %}
+                        <span class="recipe-card__placeholder" aria-hidden="true">⌂</span>
+                    {% endif %}
+                    <span class="recipe-card__body">
+                        <span class="cluster recipe-card__meta">
+                            <span class="status-badge status-badge--calm">{{ recipe.get_difficulty_display }}</span>
+                            <span>{{ recipe.total_minutes }} min</span>
+                            <span>{{ recipe.servings }} serving{{ recipe.servings|pluralize }}</span>
+                        </span>
+                        <strong class="recipe-card__title">{{ recipe.title }}</strong>
+                        <span class="recipe-card__intro">{{ recipe.intro }}</span>
+                    </span>
+                </a>
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <section class="empty-state" aria-labelledby="recipes-empty-title">
+        <div class="empty-state__icon" aria-hidden="true">+</div>
+        <div>
+            <h2 id="recipes-empty-title">No recipes published yet</h2>
+            <p>Structured recipes will appear here as editors publish them.</p>
+        </div>
+    </section>
+{% endif %}
+{% endblock %}
