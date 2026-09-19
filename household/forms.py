@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import PantryItem, ShoppingItem
+from .models import PantryItem, Routine, ShoppingItem
 from .services import AUTO_CATEGORY
 
 
@@ -134,3 +134,65 @@ class PantryItemForm(forms.Form):
             cleaned["approximate_level"] = ""
 
         return cleaned
+
+
+class RoutineForm(forms.Form):
+    title = forms.CharField(
+        max_length=120,
+        strip=True,
+        label="Routine",
+        error_messages={"required": "Enter a routine."},
+    )
+    room = forms.ChoiceField(
+        choices=Routine.Room.choices,
+        initial=Routine.Room.WHOLE_HOME,
+        required=False,
+        label="Area",
+    )
+    frequency = forms.ChoiceField(
+        choices=Routine.Frequency.choices,
+        initial=Routine.Frequency.WEEKLY,
+        required=False,
+        label="Repeat",
+    )
+    due_on = forms.DateField(
+        label="Next due",
+        widget=forms.DateInput(attrs={"type": "date"}),
+    )
+    expected_duration_minutes = forms.IntegerField(
+        min_value=1,
+        max_value=480,
+        required=False,
+        label="Expected minutes",
+    )
+
+    def clean_title(self):
+        return ShoppingItem.normalize_display_name(self.cleaned_data["title"])
+
+    def clean_room(self):
+        return self.cleaned_data.get("room") or Routine.Room.WHOLE_HOME
+
+    def clean_frequency(self):
+        return self.cleaned_data.get("frequency") or Routine.Frequency.WEEKLY
+
+
+class RoutineActionForm(forms.Form):
+    scheduled_for = forms.DateField(widget=forms.HiddenInput)
+
+
+class RoutinePostponeForm(RoutineActionForm):
+    expected_effective_due_on = forms.DateField(widget=forms.HiddenInput)
+    postponed_to = forms.DateField(
+        label="Postpone to",
+        widget=forms.DateInput(attrs={"type": "date"}),
+    )
+
+    def __init__(self, *args, routine, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.routine = routine
+
+    def clean_postponed_to(self):
+        postponed_to = self.cleaned_data["postponed_to"]
+        if postponed_to <= self.routine.effective_due_on:
+            raise forms.ValidationError("Choose a date after the current due date.")
+        return postponed_to
