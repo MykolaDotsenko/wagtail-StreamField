@@ -123,6 +123,7 @@ Negative:
 ## ADR-004 — Recurring chores require history, not a boolean
 
 Status: Accepted
+Date: 2026-09-19
 
 ### Context
 
@@ -130,7 +131,13 @@ A recurring chore cannot be accurately represented by `is_done`.
 
 ### Decision
 
-Model a recurring Routine separately from occurrence/completion history.
+Model a recurring Routine separately from immutable RoutineEvent history.
+
+The Routine keeps the cadence date and optional one-off postponed date separately. Postponement never rewrites cadence. Monthly routines retain an explicit day-of-month anchor so Jan 31 → Feb 28/29 → Mar 31 remains stable.
+
+Terminal actions advance to the first recurrence strictly after today, preventing a long-overdue daily routine from creating a backlog of stale occurrences.
+
+Browser actions include the scheduled occurrence as a stale-action token. The service re-checks it under a row lock before mutation.
 
 ### Consequences
 
