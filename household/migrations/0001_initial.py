@@ -77,6 +77,24 @@ class Migration(migrations.Migration):
                         condition=models.Q(("quantity__gte", 1)),
                         name="shopping_quantity_at_least_one",
                     ),
+                    models.CheckConstraint(
+                        condition=models.Q(("normalized_name", ""), _negated=True),
+                        name="shopping_name_not_empty",
+                    ),
+                    models.CheckConstraint(
+                        condition=models.Q(
+                            models.Q(
+                                ("completed_at__isnull", True),
+                                ("status", "open"),
+                            ),
+                            models.Q(
+                                ("completed_at__isnull", False),
+                                ("status", "completed"),
+                            ),
+                            _connector="OR",
+                        ),
+                        name="shopping_completion_state_consistent",
+                    ),
                     models.UniqueConstraint(
                         condition=models.Q(
                             ("deleted_at__isnull", True),
