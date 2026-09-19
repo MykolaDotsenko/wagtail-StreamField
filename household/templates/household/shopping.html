@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+
+{% block title %}Shopping{% endblock %}
+{% block body_class %}template-shopping{% if shopping_mode %} shopping-mode{% endif %}{% endblock %}
+
+{% block content %}
+<section class="page-heading page-heading--compact" aria-labelledby="shopping-title">
+    <p class="eyebrow">Home</p>
+    <div class="shopping-heading-row">
+        <div>
+            <h1 id="shopping-title">Shopping</h1>
+            <p class="lede">
+                {% if snapshot.open_count %}
+                    {{ snapshot.open_count }} item{{ snapshot.open_count|pluralize }} left to buy.
+                {% else %}
+                    Your active list is clear.
+                {% endif %}
+            </p>
+        </div>
+
+        {% if shopping_mode %}
+            <a class="button button--secondary" href="{% url 'household:shopping' %}">Exit shopping mode</a>
+        {% elif snapshot.open_count %}
+            <a class="button button--secondary" href="{% url 'household:shopping' %}?mode=shop">Shopping mode</a>
+        {% endif %}
+    </div>
+</section>
+
+{% if undo_candidate %}
+    <section class="undo-banner" aria-labelledby="undo-title">
+        <div>
+            <strong id="undo-title">{{ undo_candidate.name }} removed</strong>
+            <p>You can restore it without recreating the item.</p>
+        </div>
+        <form method="post" action="{% url 'household:restore_item' undo_candidate.pk %}">
+            {% csrf_token %}
+            <button class="button button--secondary" type="submit">Undo</button>
+        </form>
+    </section>
+{% endif %}
+
+{% if not shopping_mode %}
+    <section class="quick-add-card" aria-labelledby="quick-add-title">
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Quick add</p>
+                <h2 id="quick-add-title">What do you need?</h2>
+            </div>
+        </div>
+
+        <form method="post" class="quick-add-form" novalidate>
+            {% csrf_token %}
+
+            <div class="field">
+                <label class="field__label" for="shopping-name">Item</label>
+                <div class="field__inline">
+                    <input
+                        class="field__control{% if form.name.errors %} field__control--error{% endif %}"
+                        id="shopping-name"
+                        name="{{ form.name.html_name }}"
+                        type="text"
+                        value="{{ form.name.value|default:'' }}"
+                        maxlength="120"
+                        autocomplete="off"
+                        enterkeyhint="done"
+                        placeholder="Milk, tomatoes, detergent…"
+                        required
+                        {% if form.name.errors %}aria-describedby="shopping-name-errors"{% endif %}
+                    >
+                    <button class="button button--primary" type="submit">Add item</button>
+                </div>
+                {% if form.name.errors %}
+                    <div class="field__error" id="shopping-name-errors">
+                        {% for error in form.name.errors %}<p>{{ error }}</p>{% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <details class="disclosure">
+                <summary>Quantity and category</summary>
+                <div class="optional-fields">
+                    <div class="field">
+                        <label class="field__label" for="shopping-quantity">Quantity</label>
+                        <input
+                            class="field__control{% if form.quantity.errors %} field__control--error{% endif %}"
+                            id="shopping-quantity"
+                            name="{{ form.quantity.html_name }}"
+                            type="number"
+                            min="1"
+                            max="99"
+                            inputmode="numeric"
+                            value="{{ form.quantity.value|default:1 }}"
+                        >
+                        {% if form.quantity.errors %}
+                            <div class="field__error">
+                                {% for error in form.quantity.errors %}<p>{{ error }}</p>{% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+
+                    <div class="field">
+                        <label class="field__label" for="shopping-category">Category</label>
+                        <select
+                            class="field__control{% if form.category.errors %} field__control--error{% endif %}"
+                            id="shopping-category"
+                            name="{{ form.category.html_name }}"
+                        >
+                            {% for value, label in form.fields.category.choices %}
+                                <option value="{{ value }}"{% if form.category.value|default:"auto" == value %} selected{% endif %}>{{ label }}</option>
+                            {% endfor %}
+                        </select>
+                        <p class="field__help">Common items are categorized automatically. You stay in control.</p>
+                    </div>
+                </div>
+            </details>
+        </form>
+    </section>
+{% endif %}
+
+{% if snapshot.open_groups %}
+    <div class="shopping-groups">
+        {% for group in snapshot.open_groups %}
+            <section class="shopping-group" aria-labelledby="category-{{ group.key }}">
+                <div class="shopping-group__heading">
+                    <h2 id="category-{{ group.key }}">{{ group.label }}</h2>
+                    <span class="meta-text">{{ group.items|length }}</span>
+                </div>
+
+                <ul class="item-list">
+                    {% for item in group.items %}
+                        <li class="item-row shopping-item-row">
+                            <form method="post" action="{% url 'household:toggle_item' item.pk %}">
+                                {% csrf_token %}
+                                {% if shopping_mode %}<input type="hidden" name="mode" value="shop">{% endif %}
+                                <button class="shopping-check" type="submit" aria-label="Mark {{ item.name }} as bought">
+                                    <span aria-hidden="true">✓</span>
+                                </button>
+                            </form>
+
+                            <span class="item-row__body">
+                                <strong>{{ item.name }}</strong>
+                                <span>
+                                    Quantity {{ item.quantity }}
+                                    {% if item.category == "other" %}· Uncategorized{% endif %}
+                                </span>
+                            </span>
+
+                            {% if not shopping_mode %}
+                                <form class="item-row__action" method="post" action="{% url 'household:delete_item' item.pk %}">
+                                    {% csrf_token %}
+                                    <button class="icon-button" type="submit" aria-label="Remove {{ item.name }} from shopping">
+                                        <span aria-hidden="true">×</span>
+                                    </button>
+                                </form>
+                            {% endif %}
+                        </li>
+                    {% endfor %}
+                </ul>
+            </section>
+        {% endfor %}
+    </div>
+{% else %}
+    <section class="empty-state shopping-empty" aria-labelledby="shopping-empty-title">
+        <div class="empty-state__icon" aria-hidden="true">✓</div>
+        <div>
+            <h2 id="shopping-empty-title">Your list is clear</h2>
+            <p>
+                {% if shopping_mode %}
+                    There is nothing left to buy. Exit shopping mode when you are done.
+                {% else %}
+                    Add the next thing you do not want to keep in your head.
+                {% endif %}
+            </p>
+        </div>
+    </section>
+{% endif %}
+
+{% if snapshot.completed_items and not shopping_mode %}
+    <section class="completed-section" aria-labelledby="completed-title">
+        <div class="shopping-group__heading">
+            <h2 id="completed-title">Bought</h2>
+            <span class="meta-text">{{ snapshot.completed_count }}</span>
+        </div>
+
+        <ul class="item-list item-list--completed">
+            {% for item in snapshot.completed_items %}
+                <li class="item-row shopping-item-row shopping-item-row--completed">
+                    <form method="post" action="{% url 'household:toggle_item' item.pk %}">
+                        {% csrf_token %}
+                        <button class="shopping-check shopping-check--completed" type="submit" aria-label="Move {{ item.name }} back to shopping">
+                            <span aria-hidden="true">✓</span>
+                        </button>
+                    </form>
+
+                    <span class="item-row__body">
+                        <strong>{{ item.name }}</strong>
+                        <span>Bought · quantity {{ item.quantity }}</span>
+                    </span>
+
+                    <form class="item-row__action" method="post" action="{% url 'household:delete_item' item.pk %}">
+                        {% csrf_token %}
+                        <button class="icon-button" type="submit" aria-label="Remove {{ item.name }} from shopping history">
+                            <span aria-hidden="true">×</span>
+                        </button>
+                    </form>
+                </li>
+            {% endfor %}
+        </ul>
+    </section>
+{% endif %}
+{% endblock %}
