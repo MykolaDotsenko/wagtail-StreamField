@@ -36,6 +36,8 @@
                     <div class="today-card__body">
                         {% if signal.priority <= 1 %}
                             <span class="status-badge status-badge--danger">Act first</span>
+                        {% elif signal.kind == "dinner_unplanned" or signal.kind == "dinner_needs" or signal.kind == "dinner_unknown" %}
+                            <span class="status-badge status-badge--attention">Dinner</span>
                         {% elif signal.priority <= 4 %}
                             <span class="status-badge status-badge--attention">Today</span>
                         {% else %}
