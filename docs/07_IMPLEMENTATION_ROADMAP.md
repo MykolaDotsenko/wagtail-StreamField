@@ -107,6 +107,8 @@ Acceptance:
 
 ## PR 5 — Recurring Home Rhythm
 
+Status: implemented on `pr/05-recurring-home-rhythm`; final acceptance depends on CI.
+
 Goal:
 Replace CRUD chores with a correct recurrence model.
 
