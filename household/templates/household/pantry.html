@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block title %}Pantry{% endblock %}
+{% block body_class %}template-pantry{% endblock %}
+
+{% block content %}
+<section class="page-heading page-heading--compact" aria-labelledby="pantry-title">
+    <p class="eyebrow">Home</p>
+    <h1 id="pantry-title">Pantry</h1>
+    <p class="lede">
+        Track only what helps you decide what to use soon or buy next.
+        {% if snapshot.total_count %}{{ snapshot.total_count }} item{{ snapshot.total_count|pluralize }} tracked.{% endif %}
+    </p>
+</section>
+
+<section class="quick-add-card" aria-labelledby="pantry-add-title">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Quick add</p>
+            <h2 id="pantry-add-title">Add what matters</h2>
+        </div>
+    </div>
+
+    <form method="post" class="quick-add-form" novalidate>
+        {% csrf_token %}
+        {% include "household/_pantry_form_fields.html" %}
+        <div class="cluster">
+            <button class="button button--primary" type="submit">Add to pantry</button>
+        </div>
+    </form>
+</section>
+
+{% if snapshot.attention_items %}
+<section class="pantry-section" aria-labelledby="pantry-attention-title">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Act first</p>
+            <h2 id="pantry-attention-title">Needs attention</h2>
+        </div>
+        <span class="meta-text">{{ snapshot.attention_items|length }}</span>
+    </div>
+
+    <ul class="item-list">
+        {% for entry in snapshot.attention_items %}
+            <li class="item-row pantry-item-row">
+                <span class="item-row__body">
+                    <span class="cluster pantry-statuses">
+                        <strong>{{ entry.item.name }}</strong>
+                        {% if entry.is_expired %}<span class="status-badge status-badge--danger">Expired</span>{% endif %}
+                        {% if entry.expires_soon %}<span class="status-badge status-badge--attention">Use soon</span>{% endif %}
+                        {% if entry.is_low_stock %}<span class="status-badge status-badge--attention">Low stock</span>{% endif %}
+                    </span>
+                    <span>
+                        {{ entry.item.quantity_label }}
+                        ·
+                        {% if entry.expiry_unknown %}
+                            Expiry unknown
+                        {% else %}
+                            {{ entry.item.expires_on|date:"M j, Y" }}
+                        {% endif %}
+                    </span>
+                </span>
+
+                <div class="pantry-actions">
+                    {% if entry.is_low_stock or entry.is_expired %}
+                        <form method="post" action="{% url 'household:pantry_to_shopping' entry.item.pk %}">
+                            {% csrf_token %}
+                            <button class="button button--secondary button--compact" type="submit">Add to Shopping</button>
+                        </form>
+                    {% endif %}
+                    <a class="button button--ghost button--compact" href="{% url 'household:edit_pantry_item' entry.item.pk %}">Edit</a>
+                </div>
+            </li>
+        {% endfor %}
+    </ul>
+</section>
+{% endif %}
+
+<section class="pantry-section" aria-labelledby="pantry-all-title">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Inventory</p>
+            <h2 id="pantry-all-title">Everything else</h2>
+        </div>
+        <span class="meta-text">{{ snapshot.other_items|length }}</span>
+    </div>
+
+    {% if snapshot.other_items %}
+        <ul class="item-list">
+            {% for entry in snapshot.other_items %}
+                <li class="item-row pantry-item-row">
+                    <span class="item-row__body">
+                        <strong>{{ entry.item.name }}</strong>
+                        <span>
+                            {{ entry.item.quantity_label }}
+                            ·
+                            {% if entry.expiry_unknown %}
+                                Expiry unknown
+                            {% else %}
+                                {{ entry.item.expires_on|date:"M j, Y" }}
+                            {% endif %}
+                        </span>
+                    </span>
+                    <div class="pantry-actions">
+                        <a class="button button--ghost button--compact" href="{% url 'household:edit_pantry_item' entry.item.pk %}">Edit</a>
+                    </div>
+                </li>
+            {% endfor %}
+        </ul>
+    {% elif not snapshot.attention_items %}
+        <section class="empty-state" aria-labelledby="pantry-empty-title">
+            <div class="empty-state__icon" aria-hidden="true">◌</div>
+            <div>
+                <h3 id="pantry-empty-title">Track only useful stock</h3>
+                <p>Add staples, low-stock items or food with an expiry date. You do not need to catalog every cupboard.</p>
+            </div>
+        </section>
+    {% endif %}
+</section>
+{% endblock %}
