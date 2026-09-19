@@ -272,11 +272,7 @@ def week_start(anchor: date) -> date:
 
 
 def meal_plan_for_date(*, user, meal_date: date) -> MealPlanEntry | None:
-    return (
-        MealPlanEntry.objects.filter(user=user, date=meal_date)
-        .select_related("recipe")
-        .first()
-    )
+    return MealPlanEntry.objects.filter(user=user, date=meal_date).select_related("recipe").first()
 
 
 def meal_plan_week(*, user, anchor=None, today=None) -> MealPlanWeek:
