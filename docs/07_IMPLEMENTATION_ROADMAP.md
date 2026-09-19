@@ -36,7 +36,7 @@ No new product feature beyond what is required to stabilize foundation.
 
 ## PR 2 — Design system + app shell
 
-Status: implemented on `pr/02-design-system-shell`; final acceptance depends on CI and visual review.
+Status: merged; acceptance criteria passed in the delivery CI sequence.
 
 Goal:
 Build stable UI primitives once.
@@ -62,7 +62,7 @@ Acceptance:
 
 ## PR 3 — Shopping vertical slice
 
-Status: implemented on `pr/03-shopping-vertical-slice`; final acceptance depends on CI.
+Status: merged; acceptance criteria passed in the delivery CI sequence.
 
 Goal:
 Deliver the first complete high-frequency workflow.
@@ -86,7 +86,7 @@ Acceptance:
 
 ## PR 4 — Pantry vertical slice
 
-Status: implemented on `pr/04-pantry-vertical-slice`; final acceptance depends on CI.
+Status: merged; acceptance criteria passed in the delivery CI sequence.
 
 Goal:
 Surface low-stock/use-soon value without inventory burden.
@@ -107,7 +107,7 @@ Acceptance:
 
 ## PR 5 — Recurring Home Rhythm
 
-Status: implemented on `pr/05-recurring-home-rhythm`; final acceptance depends on CI.
+Status: merged; acceptance criteria passed in the delivery CI sequence.
 
 Goal:
 Replace CRUD chores with a correct recurrence model.
@@ -128,7 +128,7 @@ Acceptance:
 
 ## PR 6 — Today dashboard
 
-Status: implemented on `pr/06-today-dashboard`; final acceptance depends on CI.
+Status: merged; acceptance criteria passed in the delivery CI sequence.
 
 Goal:
 Create the product's main decision surface.
@@ -149,7 +149,7 @@ Acceptance:
 
 ## PR 7 — Wagtail content architecture
 
-Status: implemented on `pr/07-wagtail-content-architecture`; final acceptance depends on CI.
+Status: merged; acceptance criteria passed in the delivery CI sequence.
 
 Goal:
 Turn the CMS into a deliberate authoring system.
@@ -171,7 +171,7 @@ Acceptance:
 
 ## PR 8 — Recipe domain + RecipePage
 
-Status: implemented on `pr/08-recipe-domain-page`; final acceptance depends on CI.
+Status: merged; acceptance criteria passed in the delivery CI sequence.
 
 Goal:
 Create structured recipe content ready for household actions.
@@ -192,7 +192,7 @@ Acceptance:
 
 ## PR 9 — Recipe → Pantry → Shopping
 
-Status: implemented on `pr/09-recipe-pantry-shopping`; final acceptance depends on CI.
+Status: merged; acceptance criteria passed in the delivery CI sequence.
 
 Goal:
 Deliver the signature cross-module workflow.
@@ -213,7 +213,7 @@ Acceptance:
 
 ## PR 10 — Meal planning
 
-Status: implemented on `pr/10-meal-planning`; final acceptance depends on CI.
+Status: merged; acceptance criteria passed in the delivery CI sequence.
 
 Goal:
 Plan dinners and connect them to recipe readiness.
@@ -233,7 +233,7 @@ Acceptance:
 
 ## PR 11 — Global search / Discover polish
 
-Status: implemented on `pr/11-discover-search`; final acceptance depends on CI.
+Status: merged; acceptance criteria passed in the delivery CI sequence.
 
 Goal:
 Make public knowledge and private home state easy to retrieve.
@@ -250,7 +250,7 @@ Acceptance:
 
 ## PR 12 — Production hardening
 
-Status: implemented on `pr/12-production-hardening`; final acceptance depends on full CI.
+Status: merged; full hardening CI passed, including PostgreSQL and Chromium + axe.
 
 Scope:
 - PostgreSQL CI;
