@@ -72,7 +72,16 @@ Deletion is separate from completion.
 
 ## Pantry
 
-Suggested quantity mode:
+Implemented in PR4:
+- direct user ownership for the MVP;
+- normalized unique pantry identity per user;
+- category aligned with Shopping categories;
+- approximate or precise quantity mode;
+- optional expiry date;
+- optional low-stock threshold for precise mode;
+- derived attention state only — no persisted "expired" / "low" flags.
+
+Quantity mode:
 
 ```
 PRECISE | APPROXIMATE
@@ -106,10 +115,18 @@ Optional:
 
 ### Invariants
 
-1. Precise quantity cannot be negative.
-2. Approximate mode does not require numeric precision.
-3. Missing expiry date means "unknown", not "safe".
-4. Derived attention states are not separately persisted unless a performance need justifies it.
+1. Pantry identity is normalized deterministically and cannot be empty.
+2. A user has at most one pantry row per normalized identity.
+3. Precise quantity cannot be negative.
+4. Precise mode requires amount + unit and may optionally define a non-negative low-stock threshold.
+5. Approximate mode stores only FULL / HALF / LOW and clears precise-only fields.
+6. Missing expiry date means "unknown", not "safe".
+7. LOW is derived directly from approximate state; precise low-stock is derived from amount <= threshold.
+8. Expired / use-soon / low-stock states are not separately persisted.
+9. Pantry mutations and reads are owner-scoped.
+10. "Add to Shopping" ensures active shopping demand exists but is idempotent; repeated clicks do not inflate quantity.
+
+Database constraints protect identity, uniqueness, non-negative precise values and quantity-mode consistency.
 
 ## Routines
 
