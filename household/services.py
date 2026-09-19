@@ -3,8 +3,7 @@ from dataclasses import dataclass
 from django.db import models, transaction
 from django.utils import timezone
 
-from .models import ShoppingItem
-
+from household.models import ShoppingItem
 
 AUTO_CATEGORY = "auto"
 
