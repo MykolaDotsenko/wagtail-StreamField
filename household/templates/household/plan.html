@@ -1,0 +1,180 @@
+{% extends "base.html" %}
+
+{% block title %}Dinner plan{% endblock %}
+{% block body_class %}template-meal-plan{% endblock %}
+
+{% block content %}
+<section class="page-heading page-heading--compact" aria-labelledby="plan-title">
+    <p class="eyebrow">Plan</p>
+    <h1 id="plan-title">Dinner plan</h1>
+    <p class="lede">Plan one dinner per day. Recipe readiness stays derived from your Pantry instead of becoming another thing to maintain.</p>
+</section>
+
+<nav class="week-nav" aria-label="Dinner plan weeks">
+    <a class="button button--ghost button--compact" href="{% url 'household:plan' %}?week={{ previous_week|date:'Y-m-d' }}">Previous week</a>
+    <span class="week-nav__range">
+        <strong>{{ week.start|date:"M j" }}–{{ week.end|date:"M j, Y" }}</strong>
+    </span>
+    <a class="button button--ghost button--compact" href="{% url 'household:plan' %}?week={{ next_week|date:'Y-m-d' }}">Next week</a>
+</nav>
+
+<section class="surface-panel meal-plan-form-card" id="plan-dinner" aria-labelledby="plan-dinner-title">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Set dinner</p>
+            <h2 id="plan-dinner-title">What are you eating?</h2>
+        </div>
+    </div>
+
+    <form method="post" action="{% url 'household:plan' %}?week={{ week.start|date:'Y-m-d' }}" class="stack" novalidate>
+        {% csrf_token %}
+
+        {% if form.non_field_errors %}
+            <div class="alert alert--danger" role="alert">
+                {% for error in form.non_field_errors %}<p>{{ error }}</p>{% endfor %}
+            </div>
+        {% endif %}
+
+        <div class="meal-plan-form-grid">
+            <div class="field">
+                <label class="field__label" for="meal-date">Dinner date</label>
+                <input
+                    class="field__control{% if form.date.errors %} field__control--error{% endif %}"
+                    id="meal-date"
+                    name="{{ form.date.html_name }}"
+                    type="date"
+                    min="{{ today|date:'Y-m-d' }}"
+                    value="{{ form.date.value|date:'Y-m-d'|default:form.date.value|default:'' }}"
+                    {% if form.date.errors %}aria-invalid="true" aria-describedby="meal-date-errors"{% endif %}
+                    required
+                >
+                {% if form.date.errors %}
+                    <div class="field__error" id="meal-date-errors">
+                        {% for error in form.date.errors %}<p>{{ error }}</p>{% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="field">
+                <label class="field__label" for="meal-recipe">Recipe</label>
+                <select
+                    class="field__control{% if form.recipe.errors %} field__control--error{% endif %}"
+                    id="meal-recipe"
+                    name="{{ form.recipe.html_name }}"
+                    aria-describedby="meal-recipe-help{% if form.recipe.errors %} meal-recipe-errors{% endif %}"
+                    {% if form.recipe.errors %}aria-invalid="true"{% endif %}
+                >
+                    {% for value, label in form.fields.recipe.choices %}
+                        <option value="{{ value }}"{% if form.recipe.value|default:'' == value %} selected{% endif %}>{{ label }}</option>
+                    {% endfor %}
+                </select>
+                <p class="field__help" id="meal-recipe-help">Readiness labels use current Pantry state. The planned day is recalculated after saving.</p>
+                {% if form.recipe.errors %}
+                    <div class="field__error" id="meal-recipe-errors">
+                        {% for error in form.recipe.errors %}<p>{{ error }}</p>{% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="meal-plan-or" aria-hidden="true">or</div>
+
+            <div class="field">
+                <label class="field__label" for="meal-custom">Custom dinner</label>
+                <input
+                    class="field__control{% if form.custom_name.errors %} field__control--error{% endif %}"
+                    id="meal-custom"
+                    name="{{ form.custom_name.html_name }}"
+                    type="text"
+                    maxlength="160"
+                    value="{{ form.custom_name.value|default:'' }}"
+                    placeholder="Soup and sandwiches…"
+                    {% if form.custom_name.errors %}aria-invalid="true" aria-describedby="meal-custom-errors"{% endif %}
+                >
+                {% if form.custom_name.errors %}
+                    <div class="field__error" id="meal-custom-errors">
+                        {% for error in form.custom_name.errors %}<p>{{ error }}</p>{% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="cluster">
+            <button class="button button--primary" type="submit">Save dinner</button>
+            <span class="meta-text">Saving a date again replaces that day's dinner.</span>
+        </div>
+    </form>
+</section>
+
+<section class="meal-plan-week-section" aria-labelledby="week-title">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">This week</p>
+            <h2 id="week-title">Seven dinners, no calendar noise</h2>
+        </div>
+    </div>
+
+    <ol class="meal-week">
+        {% for day in week.days %}
+            <li class="meal-day{% if day.is_today %} meal-day--today{% endif %}">
+                <header class="meal-day__header">
+                    <div>
+                        <span class="meal-day__weekday">{{ day.date|date:"D" }}</span>
+                        <time datetime="{{ day.date|date:'Y-m-d' }}">{{ day.date|date:"M j" }}</time>
+                    </div>
+                    {% if day.is_today %}
+                        <span class="status-badge status-badge--calm">Today</span>
+                    {% endif %}
+                </header>
+
+                {% if day.entry %}
+                    <div class="meal-day__body">
+                        <h3>{{ day.entry.name }}</h3>
+
+                        {% if day.recipe_available %}
+                            <div class="cluster meal-day__status">
+                                {% if not day.readiness.items %}
+                                    <span class="status-badge">Ingredients incomplete</span>
+                                {% elif day.readiness.needed_count %}
+                                    <span class="status-badge status-badge--attention">
+                                        {{ day.readiness.needed_count }} need Shopping
+                                    </span>
+                                {% elif day.readiness.unknown_count %}
+                                    <span class="status-badge status-badge--attention">
+                                        {{ day.readiness.unknown_count }} check stock
+                                    </span>
+                                {% else %}
+                                    <span class="status-badge status-badge--calm">Pantry ready</span>
+                                {% endif %}
+                            </div>
+                            <p class="meta-text">{{ day.entry.recipe.total_minutes }} min · serves {{ day.entry.recipe.servings }}</p>
+                        {% elif day.entry.recipe_id %}
+                            <p class="meta-text">The linked recipe is no longer published. Your dinner name is preserved.</p>
+                        {% else %}
+                            <p class="meta-text">Custom dinner</p>
+                        {% endif %}
+                    </div>
+
+                    <div class="meal-day__actions">
+                        {% if day.recipe_available %}
+                            <a class="button button--ghost button--compact" href="{{ day.entry.recipe.url }}">Open recipe</a>
+                        {% endif %}
+                        <a class="button button--ghost button--compact" href="{% url 'household:plan' %}?week={{ week.start|date:'Y-m-d' }}&amp;date={{ day.date|date:'Y-m-d' }}#plan-dinner">Change</a>
+                        <form method="post" action="{% url 'household:remove_dinner' day.entry.pk %}">
+                            {% csrf_token %}
+                            <button class="button button--ghost button--compact" type="submit">Remove</button>
+                        </form>
+                    </div>
+                {% else %}
+                    <div class="meal-day__body meal-day__body--empty">
+                        <h3>No dinner planned</h3>
+                        <p class="meta-text">Keep it empty until the decision is worth making.</p>
+                    </div>
+                    {% if day.date >= today %}
+                        <a class="button button--secondary button--compact" href="{% url 'household:plan' %}?week={{ week.start|date:'Y-m-d' }}&amp;date={{ day.date|date:'Y-m-d' }}#plan-dinner">Plan dinner</a>
+                    {% endif %}
+                {% endif %}
+            </li>
+        {% endfor %}
+    </ol>
+</section>
+{% endblock %}
