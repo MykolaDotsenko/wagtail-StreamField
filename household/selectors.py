@@ -210,7 +210,9 @@ class MealRecipeOption:
         else:
             if self.readiness.needed_count:
                 count = self.readiness.needed_count
-                parts.append(f"{count} need{'s' if count == 1 else ''} Shopping")
+                parts.append(
+                    f"{count} item{'s' if count != 1 else ''} need{'s' if count == 1 else ''} Shopping"
+                )
             if self.readiness.unknown_count:
                 count = self.readiness.unknown_count
                 parts.append(f"{count} check stock")
