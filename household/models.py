@@ -425,3 +425,45 @@ class RoutineEvent(models.Model):
 
     def __str__(self):
         return f"{self.routine}: {self.get_outcome_display()}"
+
+
+class MealPlanEntry(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="meal_plan_entries",
+    )
+    date = models.DateField()
+    recipe = models.ForeignKey(
+        "recipes.RecipePage",
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name="meal_plan_entries",
+    )
+    name = models.CharField(
+        max_length=160,
+        help_text="Dinner name snapshot; preserved even if a linked recipe is later removed.",
+    )
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["date", "pk"]
+        constraints = [
+            models.CheckConstraint(
+                condition=~models.Q(name=""),
+                name="meal_plan_name_not_empty",
+            ),
+            models.UniqueConstraint(
+                fields=["user", "date"],
+                name="unique_dinner_per_user_date",
+            ),
+        ]
+
+    @property
+    def is_recipe(self) -> bool:
+        return self.recipe_id is not None
+
+    def __str__(self):
+        return f"{self.date:%Y-%m-%d}: {self.name}"
