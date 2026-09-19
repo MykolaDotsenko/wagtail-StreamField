@@ -192,3 +192,104 @@ def routine_snapshot(*, user, today=None) -> RoutineSnapshot:
         upcoming_items=upcoming_items,
         total_active=len(entries),
     )
+
+
+@dataclass(frozen=True)
+class TodaySignal:
+    kind: str
+    priority: int
+    title: str
+    detail: str
+    destination: str
+
+
+@dataclass(frozen=True)
+class TodaySnapshot:
+    signals: tuple[TodaySignal, ...]
+    total_action_count: int
+    has_more: bool
+    shopping_count: int
+
+
+def today_snapshot(*, user, today=None, limit: int = 6) -> TodaySnapshot:
+    today = today or timezone.localdate()
+    pantry = pantry_snapshot(user=user, today=today)
+    routines = routine_snapshot(user=user, today=today)
+    shopping = shopping_snapshot(user=user)
+
+    signals = []
+
+    for entry in routines.due_items:
+        if entry.is_overdue:
+            signals.append(
+                TodaySignal(
+                    kind="routine_overdue",
+                    priority=0,
+                    title=f"{entry.routine.title} is overdue",
+                    detail=f"{entry.routine.get_room_display()} · due {entry.effective_due_on:%b %d}",
+                    destination="routines",
+                )
+            )
+        else:
+            signals.append(
+                TodaySignal(
+                    kind="routine_today",
+                    priority=2,
+                    title=f"Due today: {entry.routine.title}",
+                    detail=f"{entry.routine.get_room_display()} · {entry.routine.get_frequency_display()}",
+                    destination="routines",
+                )
+            )
+
+    for entry in pantry.attention_items:
+        if entry.is_expired:
+            signals.append(
+                TodaySignal(
+                    kind="pantry_expired",
+                    priority=1,
+                    title=f"{entry.item.name} has expired",
+                    detail=f"{entry.item.quantity_label} · check before use",
+                    destination="pantry",
+                )
+            )
+        elif entry.expires_soon:
+            signals.append(
+                TodaySignal(
+                    kind="pantry_use_soon",
+                    priority=3,
+                    title=f"Use {entry.item.name} soon",
+                    detail=f"Best before / expiry {entry.item.expires_on:%b %d}",
+                    destination="pantry",
+                )
+            )
+        elif entry.is_low_stock:
+            signals.append(
+                TodaySignal(
+                    kind="pantry_low",
+                    priority=4,
+                    title=f"{entry.item.name} is running low",
+                    detail=f"{entry.item.quantity_label} · consider Shopping",
+                    destination="pantry",
+                )
+            )
+
+    if shopping.open_count:
+        signals.append(
+            TodaySignal(
+                kind="shopping",
+                priority=5,
+                title=f"{shopping.open_count} item{'s' if shopping.open_count != 1 else ''} to buy",
+                detail="Your active shopping list is ready when you are.",
+                destination="shopping",
+            )
+        )
+
+    signals.sort(key=lambda signal: (signal.priority, signal.title.casefold()))
+    total_action_count = len(signals)
+
+    return TodaySnapshot(
+        signals=tuple(signals[:limit]),
+        total_action_count=total_action_count,
+        has_more=total_action_count > limit,
+        shopping_count=shopping.open_count,
+    )
