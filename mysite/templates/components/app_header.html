@@ -1,0 +1,26 @@
+<header class="app-header">
+    <div class="shell app-header__inner">
+        <a class="brand" href="/" aria-label="DomoNest home">
+            <span class="brand__mark" aria-hidden="true">D</span>
+            <span class="brand__text">DomoNest</span>
+        </a>
+
+        <nav class="desktop-nav" aria-label="Primary">
+            <a class="nav-link"{% if request.path == "/" %} aria-current="page"{% endif %} href="/">Today</a>
+            <a class="nav-link"{% if request.resolver_match.url_name == "search" %} aria-current="page"{% endif %} href="{% url 'search' %}">Discover</a>
+
+            {% if request.user.is_staff %}
+                <a class="nav-link" href="/admin/">Content</a>
+            {% endif %}
+
+            {% if request.user.is_authenticated %}
+                <form class="nav-form" action="{% url 'logout' %}" method="post">
+                    {% csrf_token %}
+                    <button class="nav-link nav-link--button" type="submit">Sign out</button>
+                </form>
+            {% else %}
+                <a class="nav-link"{% if request.resolver_match.url_name == "login" %} aria-current="page"{% endif %} href="{% url 'login' %}">Sign in</a>
+            {% endif %}
+        </nav>
+    </div>
+</header>

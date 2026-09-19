@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}Signed out{% endblock %}
+
+{% block content %}
+<section class="empty-state empty-state--centered" aria-labelledby="signed-out-title">
+    <div class="empty-state__icon" aria-hidden="true">✓</div>
+    <div>
+        <h1 id="signed-out-title">You’re signed out</h1>
+        <p>Your household session has ended on this device.</p>
+    </div>
+    <a class="button button--primary" href="{% url 'login' %}">Sign in again</a>
+</section>
+{% endblock %}

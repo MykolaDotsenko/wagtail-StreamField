@@ -4,19 +4,42 @@
 {% block body_class %}template-blogindexpage{% endblock %}
 
 {% block content %}
-    <h1>{{ page.title }}</h1>
-    <div class="intro">{{ page.intro|richtext }}</div>
+<section class="page-heading" aria-labelledby="knowledge-title">
+    <p class="eyebrow">Learn</p>
+    <h1 id="knowledge-title">{{ page.title }}</h1>
+    {% if page.intro %}
+        <div class="lede prose">{{ page.intro|richtext }}</div>
+    {% endif %}
+</section>
 
-    {% for post in blogpages %}
-        {% with post=post.specific %}
-            <h2><a href="{% pageurl post %}">{{ post.title }}</a></h2>
-            {% with post.main_image as main_image %}
-                {% if main_image %}
-                    {% image main_image fill-160x100 %}
-                {% endif %}
+{% if blogpages %}
+    <ul class="item-list" aria-label="Knowledge articles">
+        {% for post in blogpages %}
+            {% with post=post.specific %}
+                <li class="item-row item-row--link">
+                    {% with post.main_image as main_image %}
+                        {% if main_image %}
+                            <span class="item-row__media">
+                                {% image main_image fill-96x96 alt="" loading="lazy" %}
+                            </span>
+                        {% endif %}
+                    {% endwith %}
+                    <span class="item-row__body">
+                        <a class="item-row__title" href="{% pageurl post %}">{{ post.title }}</a>
+                        {% if post.intro %}<span>{{ post.intro }}</span>{% endif %}
+                    </span>
+                    <span class="item-row__arrow" aria-hidden="true">→</span>
+                </li>
             {% endwith %}
-            <p>{{ post.intro }}</p>
-            {{ post.body|richtext }}
-        {% endwith %}
-    {% endfor %}
+        {% endfor %}
+    </ul>
+{% else %}
+    <section class="empty-state" aria-labelledby="knowledge-empty-title">
+        <div class="empty-state__icon" aria-hidden="true">⌕</div>
+        <div>
+            <h2 id="knowledge-empty-title">No guides published yet</h2>
+            <p>Useful household knowledge will appear here as editors publish it.</p>
+        </div>
+    </section>
+{% endif %}
 {% endblock %}

@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+
+{% block title %}Sign in{% endblock %}
+{% block body_class %}template-login{% endblock %}
+
+{% block content %}
+<div class="auth-layout">
+    <section class="auth-card" aria-labelledby="login-title">
+        <div class="page-heading page-heading--compact">
+            <p class="eyebrow">Account</p>
+            <h1 id="login-title">Sign in to DomoNest</h1>
+            <p class="lede">Use your account to access private household workflows.</p>
+        </div>
+
+        {% if form.non_field_errors %}
+            <div class="alert alert--danger" role="alert">
+                {% for error in form.non_field_errors %}
+                    <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        <form method="post" class="stack" novalidate>
+            {% csrf_token %}
+
+            <div class="field">
+                <label class="field__label" for="{{ form.username.id_for_label }}">Username</label>
+                <input
+                    class="field__control{% if form.username.errors %} field__control--error{% endif %}"
+                    id="{{ form.username.id_for_label }}"
+                    type="text"
+                    name="{{ form.username.html_name }}"
+                    value="{{ form.username.value|default:'' }}"
+                    autocomplete="username"
+                    autocapitalize="none"
+                    required
+                    {% if form.username.errors %}aria-describedby="username-errors"{% endif %}
+                >
+                {% if form.username.errors %}
+                    <div class="field__error" id="username-errors">
+                        {% for error in form.username.errors %}<p>{{ error }}</p>{% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            <div class="field">
+                <label class="field__label" for="{{ form.password.id_for_label }}">Password</label>
+                <input
+                    class="field__control{% if form.password.errors %} field__control--error{% endif %}"
+                    id="{{ form.password.id_for_label }}"
+                    type="password"
+                    name="{{ form.password.html_name }}"
+                    autocomplete="current-password"
+                    required
+                    {% if form.password.errors %}aria-describedby="password-errors"{% endif %}
+                >
+                {% if form.password.errors %}
+                    <div class="field__error" id="password-errors">
+                        {% for error in form.password.errors %}<p>{{ error }}</p>{% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            {% if next %}
+                <input type="hidden" name="next" value="{{ next }}">
+            {% endif %}
+
+            <div class="cluster">
+                <button class="button button--primary" type="submit">Sign in</button>
+                <a class="button button--ghost" href="/">Back to Today</a>
+            </div>
+        </form>
+    </section>
+</div>
+{% endblock %}

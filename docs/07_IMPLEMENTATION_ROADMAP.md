@@ -36,6 +36,8 @@ No new product feature beyond what is required to stabilize foundation.
 
 ## PR 2 — Design system + app shell
 
+Status: implemented on `pr/02-design-system-shell`; final acceptance depends on CI and visual review.
+
 Goal:
 Build stable UI primitives once.
 
