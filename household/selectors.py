@@ -1,9 +1,10 @@
 from collections import defaultdict
 from dataclasses import dataclass
+from datetime import date
 
 from django.utils import timezone
 
-from .models import PantryItem, ShoppingItem
+from .models import PantryItem, Routine, ShoppingItem
 
 
 @dataclass(frozen=True)
@@ -126,4 +127,68 @@ def pantry_snapshot(*, user, today=None) -> PantrySnapshot:
         attention_items=tuple(attention),
         other_items=tuple(other),
         total_count=len(entries),
+    )
+
+
+@dataclass(frozen=True)
+class RoutineEntry:
+    routine: Routine
+    effective_due_on: date
+    is_overdue: bool
+    is_due_today: bool
+    is_postponed: bool
+
+
+@dataclass(frozen=True)
+class RoutineSnapshot:
+    due_items: tuple[RoutineEntry, ...]
+    upcoming_items: tuple[RoutineEntry, ...]
+    total_active: int
+
+
+def routine_snapshot(*, user, today=None) -> RoutineSnapshot:
+    today = today or timezone.localdate()
+    entries = []
+
+    for routine in Routine.objects.filter(user=user, active=True).order_by(
+        "due_on",
+        "title",
+        "pk",
+    ):
+        effective_due_on = routine.effective_due_on
+        entries.append(
+            RoutineEntry(
+                routine=routine,
+                effective_due_on=effective_due_on,
+                is_overdue=effective_due_on < today,
+                is_due_today=effective_due_on == today,
+                is_postponed=routine.postponed_until is not None,
+            )
+        )
+
+    due_items = tuple(
+        sorted(
+            (entry for entry in entries if entry.effective_due_on <= today),
+            key=lambda entry: (
+                entry.effective_due_on,
+                entry.routine.title.casefold(),
+                entry.routine.pk,
+            ),
+        )
+    )
+    upcoming_items = tuple(
+        sorted(
+            (entry for entry in entries if entry.effective_due_on > today),
+            key=lambda entry: (
+                entry.effective_due_on,
+                entry.routine.title.casefold(),
+                entry.routine.pk,
+            ),
+        )
+    )
+
+    return RoutineSnapshot(
+        due_items=due_items,
+        upcoming_items=upcoming_items,
+        total_active=len(entries),
     )
