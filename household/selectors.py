@@ -46,6 +46,11 @@ def shopping_snapshot(*, user) -> ShoppingSnapshot:
         if grouped[category]
     )
 
+    completed.sort(
+        key=lambda item: item.completed_at or item.updated_at,
+        reverse=True,
+    )
+
     return ShoppingSnapshot(
         open_groups=open_groups,
         completed_items=tuple(completed),
