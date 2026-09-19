@@ -1,12 +1,18 @@
 # DomoNest
 
+[![CI](https://github.com/MykolaDotsenko/wagtail-StreamField/actions/workflows/ci.yml/badge.svg)](https://github.com/MykolaDotsenko/wagtail-StreamField/actions/workflows/ci.yml)
+![Django 5.2](https://img.shields.io/badge/Django-5.2-0C4B33)
+![Wagtail 7.4](https://img.shields.io/badge/Wagtail-7.4-43B1B0)
+![Python 3.12–3.14](https://img.shields.io/badge/Python-3.12%E2%80%933.14-3776AB)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-tested-4169E1)
+
 **DomoNest** is a production-minded Django + Wagtail household operating system designed to reduce everyday mental load.
 
-> Less to remember. More room to live.
+> **Less to remember. More room to live.**
 
-It started as a small Wagtail StreamField exercise and is now a cohesive portfolio case study built around connected household workflows rather than isolated CRUD screens.
+It started as a small Wagtail StreamField exercise and evolved into a cohesive portfolio case study built around connected household workflows, explicit domain invariants and production-quality verification rather than isolated CRUD screens.
 
-## What it demonstrates
+## Product loop
 
 ```text
 Recipe → Pantry readiness → Missing / low ingredients → Shopping
@@ -15,6 +21,16 @@ Pantry low stock → Shopping
 Routine → Complete / skip / postpone → Next recurrence
 Discover → Public knowledge + owner-scoped private state
 ```
+
+### Real CI browser evidence
+
+These screenshots are produced by the same Chromium golden journey that runs in CI; they are not mockups.
+
+| Today | Recipe readiness |
+| --- | --- |
+| ![DomoNest Today decision surface](docs/screenshots/today.webp) | ![DomoNest recipe pantry readiness](docs/screenshots/recipe-readiness.webp) |
+
+![DomoNest Shopping workflow](docs/screenshots/shopping.webp)
 
 ### Product surfaces
 
@@ -26,6 +42,20 @@ Discover → Public knowledge + owner-scoped private state
 - **Recipes** — structured Wagtail recipe authoring with canonical ingredients.
 - **Guides** — constrained actionable Wagtail content blocks.
 - **Discover** — grouped public search plus clearly separated owner-scoped private search.
+
+## Why this project is technically interesting
+
+DomoNest is intentionally small enough to understand in one repository, while still exercising production concerns that matter in real systems:
+
+- database-enforced domain invariants rather than form-only validation;
+- owner-scoped private queries at the point of retrieval;
+- idempotent cross-module commands;
+- deterministic recurrence and ingredient reconciliation;
+- derived read models instead of duplicated dashboard state;
+- Wagtail editorial content separated from private transactional state;
+- PostgreSQL integration testing alongside zero-setup SQLite development;
+- query-budget regression tests for high-value read models;
+- browser-level golden journey and automated WCAG 2.2 AA checks.
 
 ## Stack
 
@@ -43,6 +73,21 @@ Discover → Public knowledge + owner-scoped private state
 No SPA framework, AI layer or search cluster is added without a product requirement.
 
 ## Architecture
+
+```mermaid
+flowchart LR
+    CMS[Wagtail editorial content] --> Recipes[Recipes & Guides]
+    Recipes --> Reconcile[Recipe readiness service]
+    Pantry[Private Pantry] --> Reconcile
+    Reconcile --> Shopping[Private Shopping]
+    Recipes --> Plan[Private Dinner Plan]
+    Plan --> Today[Today read model]
+    Pantry --> Today
+    Shopping --> Today
+    Routines[Private Home Rhythm] --> Today
+    Discover[Discover] --> Recipes
+    Discover --> Private[Owner-scoped private search]
+```
 
 DomoNest deliberately separates responsibilities:
 
@@ -76,25 +121,27 @@ password: domonest-demo
 
 The demo password is intentionally local-only. Do not reuse it for a deployed environment.
 
-## Quality gates
+## Verified quality gates
 
-CI verifies:
+The integrated release was verified in **CI run #91** on the exact release-verification head.
 
-- Python 3.12 / 3.13 / 3.14;
-- Ruff lint + formatting;
-- Django/Wagtail system checks;
-- migration drift;
-- clean migrations;
-- branch coverage threshold;
-- full PostgreSQL integration tests;
-- production `check --deploy`;
-- production `collectstatic`;
-- Python dependency audit;
-- Chromium golden journey;
-- Axe accessibility checks;
-- query-budget regressions for high-value read models.
+| Gate | Evidence |
+| --- | --- |
+| Python compatibility | 3.12 ✅ · 3.13 ✅ · 3.14 ✅ |
+| Django / Wagtail checks | ✅ |
+| Migration drift | 0 ✅ |
+| Branch coverage threshold | ≥ 80% ✅ |
+| PostgreSQL full suite | ✅ |
+| Production `check --deploy` | ✅ |
+| Production `collectstatic` | ✅ |
+| Python dependency audit | ✅ |
+| Browser dependency audit | ✅ |
+| Chromium golden journey | ✅ |
+| Axe WCAG A/AA smoke gate | ✅ |
 
-Browser runs publish Playwright report, traces/failure screenshots and portfolio-oriented screenshots as the **domonest-browser-evidence** workflow artifact.
+Browser runs publish Playwright reports, traces/failure screenshots and portfolio-oriented screenshots as the **domonest-browser-evidence** workflow artifact.
+
+See **[Release evidence](./docs/12_RELEASE_EVIDENCE.md)** for the exact verification contract.
 
 ## Production baseline
 
@@ -132,6 +179,7 @@ Key documents:
 - [Architecture decisions](./docs/09_ADR_LOG.md)
 - [Research log](./docs/10_RESEARCH_LOG.md)
 - [Deployment runbook](./docs/11_DEPLOYMENT_RUNBOOK.md)
+- [Release evidence](./docs/12_RELEASE_EVIDENCE.md)
 
 ## Delivery history
 
@@ -148,6 +196,7 @@ The product was rebuilt as bounded vertical slices:
 9. Recipe → Pantry → Shopping;
 10. dinner planning;
 11. Discover/search;
-12. production hardening.
+12. production hardening;
+13. release / portfolio evidence.
 
 See the roadmap for detailed acceptance criteria and rationale.
