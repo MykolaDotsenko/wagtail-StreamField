@@ -350,3 +350,55 @@ Negative:
 - `docs/02_UX_RESEARCH_AND_FLOWS.md`
 - `docs/05_DOMAIN_MODEL.md`
 - `docs/04_ARCHITECTURE.md`
+
+
+---
+
+## ADR-009 — Meal plans store durable intent while readiness stays derived
+
+Status: Accepted
+Date: 2026-09-19
+
+### Context
+
+Dinner planning combines private household intent with public editorial recipes and volatile Pantry state. Persisting a recipe-only foreign key would make the private plan fragile if editorial content is later removed. Persisting readiness/missing counts would create duplicated state that becomes stale as Pantry changes.
+
+### Decision
+
+MealPlanEntry stores one durable dinner-name snapshot for every plan plus an optional RecipePage foreign key using SET_NULL.
+
+The database enforces one dinner per user + date. Setting dinner is an upsert.
+
+Recipe readiness is never persisted. The week and Today read models call the PR9 reconciliation contract at read time. Week readiness uses the planned dinner date so expiry is evaluated against when the meal will actually be cooked.
+
+The MVP is dinner-only and therefore does not add a meal-slot field.
+
+### Alternatives considered
+
+1. Store only RecipePage FK for recipe dinners.
+2. Persist readiness/missing counts on MealPlanEntry.
+3. Add breakfast/lunch/snack slots immediately.
+4. Duplicate full recipe data into private state.
+5. Build a recommendation engine before basic planning.
+
+### Consequences
+
+Positive:
+- private plans survive editorial recipe deletion;
+- no stale readiness columns;
+- one-dinner invariant is simple and database-enforced;
+- same PR9 readiness semantics are reused consistently;
+- custom meals remain low-friction.
+
+Negative:
+- recipe title snapshot can intentionally differ from a later edited recipe title until the dinner is re-saved;
+- read-time readiness has query cost that PR12 should measure and optimize;
+- only dinner is represented in MVP.
+
+### References
+
+- `docs/02_UX_RESEARCH_AND_FLOWS.md`
+- `docs/04_ARCHITECTURE.md`
+- `docs/05_DOMAIN_MODEL.md`
+- ADR-003
+- ADR-008
