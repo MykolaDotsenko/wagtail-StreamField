@@ -1,0 +1,9 @@
+{% if messages %}
+    <section class="snackbar-stack" aria-label="Notifications" aria-live="polite">
+        {% for message in messages %}
+            <div class="snackbar{% if message.tags %} snackbar--{{ message.tags }}{% endif %}" role="status">
+                {{ message }}
+            </div>
+        {% endfor %}
+    </section>
+{% endif %}
