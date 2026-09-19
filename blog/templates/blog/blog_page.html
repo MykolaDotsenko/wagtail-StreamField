@@ -1,48 +1,18 @@
 {% extends "base.html" %}
 {% load wagtailcore_tags wagtailimages_tags %}
-
-{% block body_class %}template-blogpage{% endblock %}
-
+{% block body_class %}template-guide{% endblock %}
 {% block content %}
-    <h1>{{ page.title }}</h1>
-    <p class="meta">{{ page.date }}</p>
-
-    {% with authors=page.authors.all %}
-        {% if authors %}
-            <h3>Posted by:</h3>
-            <ul>
-                {% for author in authors %}
-                    <li style="display: inline">
-                        {% image author.author_image fill-40x60 style="vertical-align: middle" %}
-                        {{ author.name }}
-                    </li>
-                {% endfor %}
-            </ul>
-        {% endif %}
-    {% endwith %}
-
-    <div class="intro">{{ page.intro }}</div>
-    {% for block in page.body %}
-        {% include_block block %}
-    {% endfor %}
-
-    {% for item in page.gallery_images.all %}
-        <div style="float: inline-start; margin: 10px">
-            {% image item.image fill-320x240 %}
-            <p>{{ item.caption }}</p>
-        </div>
-    {% endfor %}
-
-    <p><a href="{{ page.get_parent.url }}">Return to blog</a></p>
-
-    {% with tags=page.tags.all %}
-        {% if tags %}
-            <div class="tags">
-                <h3>Tags</h3>
-                {% for tag in tags %}
-                    <a href="{% slugurl 'tags' %}?tag={{ tag }}"><button type="button">{{ tag }}</button></a>
-                {% endfor %}
-            </div>
-        {% endif %}
-    {% endwith %}
+<article>
+    <header class="article-hero"><div class="shell article-shell">
+        <a class="back-link" href="{{ page.get_parent.url }}">← All guides</a>
+        <div class="card-kicker">{% if page.topic %}{{ page.topic.icon }} {{ page.topic.name }} · {% endif %}{{ page.reading_minutes }} min read</div>
+        <h1>{{ page.title }}</h1><p class="lead">{{ page.intro }}</p>
+        <div class="article-meta"><time datetime="{{ page.date|date:'Y-m-d' }}">{{ page.date|date:"M j, Y" }}</time>{% for author in page.authors.all %}<span>{{ author.name }}</span>{% endfor %}</div>
+    </div></header>
+    <div class="shell article-shell article-body">
+        {% for block in page.body %}<div class="stream-block stream-{{ block.block_type }}">{% include_block block %}</div>{% endfor %}
+        {% for item in page.gallery_images.all %}{% image item.image width-1200 as gallery_image %}<figure class="article-image"><img src="{{ gallery_image.url }}" width="{{ gallery_image.width }}" height="{{ gallery_image.height }}" alt="{{ gallery_image.alt }}" loading="lazy">{% if item.caption %}<figcaption>{{ item.caption }}</figcaption>{% endif %}</figure>{% endfor %}
+        {% with tags=page.tags.all %}{% if tags %}<div class="tag-row">{% for tag in tags %}<a href="{% slugurl 'tags' %}?tag={{ tag|urlencode }}">#{{ tag }}</a>{% endfor %}</div>{% endif %}{% endwith %}
+    </div>
+</article>
 {% endblock %}

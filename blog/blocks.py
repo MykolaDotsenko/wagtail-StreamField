@@ -61,9 +61,7 @@ class GuideBodyBlock(blocks.StreamBlock):
         features=["h3", "h4", "bold", "italic", "link", "ol", "ul"]
     )
     image = ImageChooserBlock(template="blog/streamfield/blocks/image_block.html")
-    accessible_image = ImageBlock(
-        template="blog/streamfield/blocks/accessible_image_block.html"
-    )
+    accessible_image = ImageBlock()
     quote = blocks.BlockQuoteBlock()
     embed = EmbedBlock()
     checklist = ChecklistBlock()

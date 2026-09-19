@@ -1,22 +1,24 @@
 {% extends "base.html" %}
 {% load wagtailcore_tags wagtailimages_tags %}
-
-{% block body_class %}template-blogindexpage{% endblock %}
-
+{% block body_class %}template-library{% endblock %}
 {% block content %}
-    <h1>{{ page.title }}</h1>
-    <div class="intro">{{ page.intro|richtext }}</div>
-
-    {% for post in blogpages %}
-        {% with post=post.specific %}
-            <h2><a href="{% pageurl post %}">{{ post.title }}</a></h2>
-            {% with post.main_image as main_image %}
-                {% if main_image %}
-                    {% image main_image fill-160x100 %}
-                {% endif %}
-            {% endwith %}
-            <p>{{ post.intro }}</p>
-            {{ post.body|richtext }}
-        {% endwith %}
-    {% endfor %}
+<section class="page-hero page-hero-compact"><div class="shell"><p class="eyebrow">Home library</p><h1>{{ page.title }}</h1><div class="lead prose">{{ page.intro|richtext }}</div></div></section>
+<section class="section section-tight"><div class="shell">
+    <form class="filter-bar" method="get">
+        <label class="search-field"><span class="sr-only">Search guides</span><input type="search" name="q" value="{{ query }}" placeholder="Search practical home guides…"></label>
+        <select name="topic" aria-label="Filter by topic"><option value="">All topics</option>{% for topic in topics %}<option value="{{ topic.slug }}" {% if active_topic == topic.slug %}selected{% endif %}>{{ topic.icon }} {{ topic.name }}</option>{% endfor %}</select>
+        <button class="button button-small" type="submit">Filter</button>
+    </form>
+    <div class="content-grid">
+        {% for post in blogpages %}
+            <article class="content-card content-card-static">
+                {% with image=post.main_image %}{% if image %}{% image image fill-720x400 as card_image %}<a class="card-media" href="{% pageurl post %}"><img src="{{ card_image.url }}" width="{{ card_image.width }}" height="{{ card_image.height }}" alt="{{ card_image.alt }}" loading="lazy"></a>{% endif %}{% endwith %}
+                <div class="card-kicker">{% if post.topic %}{{ post.topic.icon }} {{ post.topic.name }} · {% endif %}{{ post.reading_minutes }} min</div>
+                <h2><a href="{% pageurl post %}">{{ post.title }}</a></h2><p>{{ post.intro }}</p><a class="text-link" href="{% pageurl post %}">Read guide →</a>
+            </article>
+        {% empty %}
+            <div class="empty-state"><span aria-hidden="true">⌕</span><h2>No guides match yet.</h2><p>Try a broader phrase or remove the topic filter.</p></div>
+        {% endfor %}
+    </div>
+</div></section>
 {% endblock %}

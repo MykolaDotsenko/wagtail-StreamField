@@ -1,0 +1,17 @@
+<section class="section section-soft">
+    <div class="shell">
+        <div class="section-heading">
+            <div>{% if value.eyebrow %}<p class="eyebrow">{{ value.eyebrow }}</p>{% endif %}<h2>{{ value.title }}</h2></div>
+            {% if value.intro %}<p>{{ value.intro }}</p>{% endif %}
+        </div>
+        <div class="feature-grid">
+            {% for item in value.items %}
+                <article class="feature-card">
+                    <span class="feature-icon" aria-hidden="true">{% if item.icon == "meal" %}🍽️{% elif item.icon == "shop" %}🛒{% elif item.icon == "pantry" %}🥫{% elif item.icon == "clean" %}🧹{% else %}✨{% endif %}</span>
+                    <h3>{{ item.title }}</h3><p>{{ item.text }}</p>
+                    {% if item.link_label and item.link_url %}<a class="text-link" href="{{ item.link_url }}">{{ item.link_label }} →</a>{% endif %}
+                </article>
+            {% endfor %}
+        </div>
+    </div>
+</section>

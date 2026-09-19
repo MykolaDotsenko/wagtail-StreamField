@@ -1,0 +1,19 @@
+{% load wagtailcore_tags wagtailimages_tags %}
+<section class="section">
+    <div class="shell split-feature {% if value.image_on_left %}split-feature-reverse{% endif %}">
+        <div class="split-copy">
+            {% if value.eyebrow %}<p class="eyebrow">{{ value.eyebrow }}</p>{% endif %}
+            <h2>{{ value.title }}</h2>
+            <div class="prose">{{ value.text|richtext }}</div>
+            {% if value.link_label and value.link_url %}<a class="button button-secondary" href="{{ value.link_url }}">{{ value.link_label }}</a>{% endif %}
+        </div>
+        <div class="split-visual">
+            {% if value.image %}
+                {% image value.image fill-760x620 as feature_image %}
+                <img src="{{ feature_image.url }}" width="{{ feature_image.width }}" height="{{ feature_image.height }}" alt="{{ feature_image.alt }}" loading="lazy">
+            {% else %}
+                <div class="visual-placeholder"><span>Small routines</span><strong>create<br>more room.</strong></div>
+            {% endif %}
+        </div>
+    </div>
+</section>

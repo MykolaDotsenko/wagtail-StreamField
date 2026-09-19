@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags wagtailimages_tags %}
+{% block body_class %}template-recipes{% endblock %}
+{% block content %}
+<section class="page-hero page-hero-compact"><div class="shell"><p class="eyebrow">Plan dinner with less thinking</p><h1>{{ page.title }}</h1><div class="lead prose">{{ page.intro|richtext }}</div></div></section>
+<section class="section section-tight"><div class="shell">
+    <form class="filter-bar" method="get">
+        <label class="search-field"><span class="sr-only">Search recipes</span><input type="search" name="q" value="{{ query }}" placeholder="Search recipes…"></label>
+        <select name="meal_type" aria-label="Filter by meal type"><option value="">Any meal</option>{% for value,label in meal_types %}<option value="{{ value }}" {% if active_meal_type == value %}selected{% endif %}>{{ label }}</option>{% endfor %}</select>
+        <button class="button button-small" type="submit">Filter</button>
+    </form>
+    <div class="recipe-grid">
+    {% for recipe in recipes %}
+        <article class="recipe-card">
+            <a href="{% pageurl recipe %}" class="recipe-media">{% if recipe.hero_image %}{% image recipe.hero_image fill-720x480 as recipe_image %}<img src="{{ recipe_image.url }}" width="{{ recipe_image.width }}" height="{{ recipe_image.height }}" alt="{{ recipe_image.alt }}" loading="lazy">{% else %}<span aria-hidden="true">🍲</span>{% endif %}</a>
+            <div class="recipe-card-body"><div class="card-kicker">{{ recipe.get_meal_type_display }} · {{ recipe.total_minutes }} min</div><h2><a href="{% pageurl recipe %}">{{ recipe.title }}</a></h2><p>{{ recipe.summary }}</p><div class="chip-row"><span>{{ recipe.get_difficulty_display }}</span><span>{{ recipe.servings }} servings</span></div></div>
+        </article>
+    {% empty %}<div class="empty-state"><span aria-hidden="true">🍽️</span><h2>No recipes found.</h2><p>Clear the filter and try again.</p></div>{% endfor %}
+    </div>
+</div></section>
+{% endblock %}

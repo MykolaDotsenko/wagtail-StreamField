@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags wagtailimages_tags %}
+{% block body_class %}template-recipe{% endblock %}
+{% block content %}
+<article>
+<header class="recipe-hero"><div class="shell recipe-hero-grid">
+    <div><a class="back-link" href="{{ page.get_parent.url }}">← All recipes</a><div class="card-kicker">{{ page.get_meal_type_display }}</div><h1>{{ page.title }}</h1><p class="lead">{{ page.summary }}</p><div class="recipe-facts"><span><strong>{{ page.total_minutes }}</strong> min total</span><span><strong>{{ page.servings }}</strong> servings</span><span><strong>{{ page.get_difficulty_display }}</strong> level</span></div></div>
+    <div class="recipe-hero-media">{% if page.hero_image %}{% image page.hero_image fill-900x760 as hero_image %}<img src="{{ hero_image.url }}" width="{{ hero_image.width }}" height="{{ hero_image.height }}" alt="{{ hero_image.alt }}">{% else %}<div class="visual-placeholder"><span>Tonight's plan</span><strong>Simple food,<br>less friction.</strong></div>{% endif %}</div>
+</div></header>
+<div class="shell recipe-layout">
+    <aside class="ingredient-panel"><div class="sticky-card"><p class="eyebrow">Ingredients</p><h2>What you need</h2><ul class="ingredient-list">{% for block in page.ingredients %}{% if block.block_type == "ingredient" %}<li><label><input type="checkbox"><span><strong>{{ block.value.amount }}</strong> {{ block.value.name }}{% if block.value.note %}<small>{{ block.value.note }}</small>{% endif %}</span></label></li>{% endif %}{% endfor %}</ul></div></aside>
+    <div class="recipe-method"><p class="eyebrow">Method</p><h2>Make it without rushing.</h2><ol class="method-list">{% for block in page.steps %}{% if block.block_type == "step" %}<li><span>{{ forloop.counter }}</span><div>{% if block.value.title %}<h3>{{ block.value.title }}</h3>{% endif %}<p>{{ block.value.instruction }}</p></div></li>{% endif %}{% endfor %}</ol>{% for block in page.body %}<div class="stream-block">{% include_block block %}</div>{% endfor %}</div>
+</div>
+</article>
+{% endblock %}

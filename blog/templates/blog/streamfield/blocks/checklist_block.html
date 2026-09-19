@@ -1,0 +1,1 @@
+<section class="checklist-block"><p class="eyebrow">Checklist</p><h2>{{ value.title }}</h2>{% if value.intro %}<p>{{ value.intro }}</p>{% endif %}<ul>{% for item in value.items %}<li><span aria-hidden="true">✓</span><div>{{ item.text }}{% if item.note %}<small>{{ item.note }}</small>{% endif %}</div></li>{% endfor %}</ul></section>

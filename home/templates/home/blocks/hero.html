@@ -1,0 +1,25 @@
+{% load wagtailimages_tags %}
+<section class="hero-section">
+    <div class="shell hero-grid">
+        <div class="hero-copy">
+            {% if value.eyebrow %}<p class="eyebrow">{{ value.eyebrow }}</p>{% endif %}
+            <h1>{{ value.title }}</h1>
+            <p class="lead">{{ value.text }}</p>
+            <div class="button-row">
+                <a class="button" href="{{ value.primary_url }}">{{ value.primary_label }}</a>
+                {% if value.secondary_label and value.secondary_url %}<a class="button button-secondary" href="{{ value.secondary_url }}">{{ value.secondary_label }}</a>{% endif %}
+            </div>
+        </div>
+        {% if value.image %}
+            {% image value.image fill-880x720 as hero_image %}
+            <div class="hero-media"><img src="{{ hero_image.url }}" width="{{ hero_image.width }}" height="{{ hero_image.height }}" alt="{{ hero_image.alt }}"></div>
+        {% else %}
+            <div class="dashboard-preview">
+                <div class="preview-topline"><span>Today at home</span><span class="status-dot">Calm mode</span></div>
+                <div class="preview-card preview-meal"><span class="preview-icon">🍲</span><div><small>Dinner</small><strong>Roasted tomato pasta</strong></div><span>25 min</span></div>
+                <div class="preview-card"><span class="preview-icon">🛒</span><div><small>Shopping</small><strong>6 items left</strong></div><span>68%</span></div>
+                <div class="preview-card"><span class="preview-icon">🧺</span><div><small>Home reset</small><strong>Fresh bed linen</strong></div><span>Today</span></div>
+            </div>
+        {% endif %}
+    </div>
+</section>
