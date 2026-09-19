@@ -4,8 +4,10 @@ from django.db import transaction
 from django.db.models import F
 from django.utils import timezone
 
-from .forms import AUTO_CATEGORY
 from .models import ShoppingItem
+
+
+AUTO_CATEGORY = "auto"
 
 
 _CATEGORY_KEYWORDS = {
