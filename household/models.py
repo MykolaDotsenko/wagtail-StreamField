@@ -465,5 +465,9 @@ class MealPlanEntry(models.Model):
     def is_recipe(self) -> bool:
         return self.recipe_id is not None
 
+    def save(self, *args, **kwargs):
+        self.name = ShoppingItem.normalize_display_name(self.name)
+        super().save(*args, **kwargs)
+
     def __str__(self):
         return f"{self.date:%Y-%m-%d}: {self.name}"
