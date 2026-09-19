@@ -59,23 +59,82 @@
             </div>
 
             <ul class="recipe-ingredient-list">
-                {% for line in page.ingredient_lines.all %}
-                    <li>
-                        <span class="recipe-ingredient-list__amount">
-                            {% if line.amount_label %}{{ line.amount_label }}{% else %}As needed{% endif %}
-                        </span>
-                        <span class="recipe-ingredient-list__name">
-                            <strong>{{ line.ingredient.name }}</strong>
-                            {% if line.note %}<span>{{ line.note }}</span>{% endif %}
-                        </span>
-                        {% if line.optional %}
-                            <span class="status-badge">Optional</span>
-                        {% endif %}
-                    </li>
-                {% empty %}
-                    <li class="meta-text">Ingredients are being prepared by the editor.</li>
-                {% endfor %}
+                {% if readiness %}
+                    {% for entry in readiness.items %}
+                        {% with line=entry.line %}
+                            <li>
+                                <span class="recipe-ingredient-list__amount">
+                                    {% if line.amount_label %}{{ line.amount_label }}{% else %}As needed{% endif %}
+                                </span>
+                                <span class="recipe-ingredient-list__name">
+                                    <strong>{{ line.ingredient.name }}</strong>
+                                    {% if line.note %}<span>{{ line.note }}</span>{% endif %}
+                                    <small>{{ entry.detail }}</small>
+                                </span>
+                                <span class="recipe-ingredient-list__state">
+                                    {% if line.optional %}
+                                        <span class="status-badge">Optional</span>
+                                    {% endif %}
+                                    {% if entry.state == "available" %}
+                                        <span class="status-badge status-badge--calm">{{ entry.label }}</span>
+                                    {% elif entry.state == "low" %}
+                                        <span class="status-badge status-badge--attention">{{ entry.label }}</span>
+                                    {% elif entry.state == "missing" %}
+                                        <span class="status-badge status-badge--danger">{{ entry.label }}</span>
+                                    {% else %}
+                                        <span class="status-badge">{{ entry.label }}</span>
+                                    {% endif %}
+                                </span>
+                            </li>
+                        {% endwith %}
+                    {% empty %}
+                        <li class="meta-text">Ingredients are being prepared by the editor.</li>
+                    {% endfor %}
+                {% else %}
+                    {% for line in page.ingredient_lines.all %}
+                        <li>
+                            <span class="recipe-ingredient-list__amount">
+                                {% if line.amount_label %}{{ line.amount_label }}{% else %}As needed{% endif %}
+                            </span>
+                            <span class="recipe-ingredient-list__name">
+                                <strong>{{ line.ingredient.name }}</strong>
+                                {% if line.note %}<span>{{ line.note }}</span>{% endif %}
+                            </span>
+                            {% if line.optional %}
+                                <span class="status-badge">Optional</span>
+                            {% endif %}
+                        </li>
+                    {% empty %}
+                        <li class="meta-text">Ingredients are being prepared by the editor.</li>
+                    {% endfor %}
+                {% endif %}
             </ul>
+
+            {% if readiness %}
+                <div class="recipe-shopping-action">
+                    {% if readiness.needed_count %}
+                        <p class="meta-text">
+                            {{ readiness.needed_count }} ingredient{{ readiness.needed_count|pluralize }} need shopping attention.
+                            Uncertain stock is left for you to check.
+                        </p>
+                        <form method="post" action="{% url 'household:add_recipe_to_shopping' page.pk %}">
+                            {% csrf_token %}
+                            <button class="button button--primary" type="submit">
+                                Add {{ readiness.needed_count }} needed item{{ readiness.needed_count|pluralize }} to Shopping
+                            </button>
+                        </form>
+                    {% elif readiness.unknown_count %}
+                        <p class="meta-text">Nothing is missing or low. Check the uncertain Pantry items before cooking.</p>
+                    {% else %}
+                        <p class="meta-text">Pantry looks ready for this recipe.</p>
+                    {% endif %}
+                </div>
+            {% else %}
+                <div class="recipe-shopping-action">
+                    <p class="meta-text">Sign in to compare this recipe with your private Pantry.</p>
+                    <a class="button button--secondary" href="{% url 'login' %}?next={{ request.path|urlencode }}">Compare with Pantry</a>
+                </div>
+            {% endif %}
         </aside>
 
         <section class="recipe-method" aria-labelledby="method-title">

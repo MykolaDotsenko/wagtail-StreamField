@@ -6,6 +6,11 @@ app_name = "household"
 
 urlpatterns = [
     path("today/", views.today, name="today"),
+    path(
+        "recipes/<int:recipe_id>/add-needed-to-shopping/",
+        views.add_recipe_to_shopping,
+        name="add_recipe_to_shopping",
+    ),
     path("routines/", views.routines, name="routines"),
     path("routines/<int:routine_id>/edit/", views.edit_routine, name="edit_routine"),
     path(

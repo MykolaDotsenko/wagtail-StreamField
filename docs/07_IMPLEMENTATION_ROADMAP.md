@@ -192,6 +192,8 @@ Acceptance:
 
 ## PR 9 — Recipe → Pantry → Shopping
 
+Status: implemented on `pr/09-recipe-pantry-shopping`; final acceptance depends on CI.
+
 Goal:
 Deliver the signature cross-module workflow.
 

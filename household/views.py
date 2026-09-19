@@ -9,6 +9,8 @@ from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
+from recipes.models import RecipePage
+
 from .forms import (
     PantryItemForm,
     RoutineActionForm,
@@ -17,6 +19,7 @@ from .forms import (
     ShoppingItemCreateForm,
 )
 from .models import PantryItem, Routine, ShoppingItem
+from .recipe_reconciliation import add_needed_recipe_ingredients
 from .selectors import (
     deleted_shopping_item_for_undo,
     pantry_snapshot,
@@ -162,6 +165,34 @@ def restore_item(request, item_id):
 
 
 @login_required
+@require_POST
+def add_recipe_to_shopping(request, recipe_id):
+    try:
+        recipe = RecipePage.objects.live().get(pk=recipe_id)
+    except RecipePage.DoesNotExist as exc:
+        raise Http404 from exc
+
+    result = add_needed_recipe_ingredients(recipe=recipe, user=request.user)
+    if result.added_count:
+        message = (
+            f"{result.added_count} needed item"
+            f"{'s' if result.added_count != 1 else ''} added to Shopping."
+        )
+        if result.existing_count:
+            message += (
+                f" {result.existing_count} "
+                f"{'were' if result.existing_count != 1 else 'was'} already there."
+            )
+        messages.success(request, message)
+    elif result.considered_count:
+        messages.info(request, "Shopping already has every ingredient that needs adding.")
+    else:
+        messages.info(request, "Nothing missing or low needs to be added.")
+
+    return redirect(recipe.url)
+
+
+@login_required
 def pantry(request):
     form = PantryItemForm(request.POST or None, user=request.user)
 
@@ -259,7 +290,7 @@ def pantry_to_shopping(request, item_id):
     else:
         messages.success(
             request,
-            f"{result.item.name} was already on Shopping — quantity updated.",
+            f"{result.item.name} is already on Shopping.",
         )
     return redirect("household:pantry")
 

@@ -231,12 +231,20 @@ Ingredient matching is a domain risk.
 MVP approach:
 - canonical Ingredient entity;
 - explicit recipe references;
-- pantry and shopping items may optionally link to Ingredient;
-- free-text items remain supported.
+- PantryItem and ShoppingItem have optional canonical Ingredient links;
+- free-text items remain supported;
+- exact normalized-name fallback preserves legacy/free-text compatibility;
+- no fuzzy aliases or semantic matching.
+
+Database invariants:
+- at most one Pantry row per user + canonical Ingredient when linked;
+- at most one non-deleted OPEN Shopping row per user + canonical Ingredient when linked.
 
 Never claim semantic equivalence from fuzzy text without a clear deterministic rule.
 
 ## Recipe → pantry reconciliation
+
+Implemented in PR9 as an owner-scoped derived read model. No readiness rows are persisted.
 
 States:
 - AVAILABLE;
@@ -244,24 +252,41 @@ States:
 - MISSING;
 - UNKNOWN.
 
-Rules must be deterministic and testable.
-
-If units cannot be safely compared:
-- fall back to presence/unknown;
-- do not invent quantity sufficiency.
+Deterministic rules:
+1. Canonical Ingredient link is the primary match.
+2. When no canonical Pantry link exists, exact normalized-name fallback is allowed.
+3. Another user's Pantry state is never considered.
+4. Expired Pantry state is UNKNOWN, not AVAILABLE or MISSING.
+5. Approximate LOW is LOW.
+6. Approximate FULL/HALF:
+   - AVAILABLE when the recipe has no required numeric amount;
+   - UNKNOWN when the recipe requires a numeric amount.
+7. Precise quantities compare only inside safe unit families:
+   - item ↔ item;
+   - g ↔ kg;
+   - ml ↔ l.
+8. tsp / tbsp / cup and incompatible unit families degrade to UNKNOWN.
+9. When precise stock is below recipe need, state is LOW.
+10. UNKNOWN never becomes automatic Shopping demand.
+11. Optional ingredients never become automatic Shopping demand.
 
 ## Recipe → shopping
 
 Operation:
-`add_missing_ingredients(recipe, household)`
+`add_needed_recipe_ingredients(recipe, user)`
 
 Requirements:
-1. determine missing/low ingredients;
-2. exclude sufficient ingredients;
-3. merge with equivalent open shopping items;
-4. perform changes atomically;
-5. return a result summary for UI;
-6. be safe against duplicate submission.
+1. determine MISSING / LOW / AVAILABLE / UNKNOWN;
+2. auto-add only non-optional MISSING + LOW ingredients;
+3. exclude AVAILABLE, UNKNOWN and optional ingredients;
+4. ensure equivalent open Shopping demand idempotently;
+5. preserve canonical Ingredient link where available;
+6. backfill canonical Ingredient onto an equivalent free-text open Shopping row when safe;
+7. perform writes atomically;
+8. return created/reused counts for UI;
+9. repeated submission must not increase quantity.
+
+The recipe action is POST-only, CSRF-protected and returns the user to the same RecipePage.
 
 ## Meal plan
 
