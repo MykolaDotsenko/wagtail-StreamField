@@ -58,9 +58,5 @@ class SeedDemoCommandTests(TestCase):
             stdout=StringIO(),
         )
 
-        self.assertFalse(
-            ShoppingItem.objects.filter(user=demo, name="Remove me").exists()
-        )
-        self.assertTrue(
-            ShoppingItem.objects.filter(user=other, name="Keep me").exists()
-        )
+        self.assertFalse(ShoppingItem.objects.filter(user=demo, name="Remove me").exists())
+        self.assertTrue(ShoppingItem.objects.filter(user=other, name="Keep me").exists())
