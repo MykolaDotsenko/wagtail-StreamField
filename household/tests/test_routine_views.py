@@ -143,14 +143,10 @@ class RoutineViewTests(TestCase):
         routine = self._routine(user=self.other_user)
 
         self.assertEqual(
-            self.client.get(
-                reverse("household:edit_routine", args=[routine.pk])
-            ).status_code,
+            self.client.get(reverse("household:edit_routine", args=[routine.pk])).status_code,
             404,
         )
         self.assertEqual(
-            self.client.post(
-                reverse("household:archive_routine", args=[routine.pk])
-            ).status_code,
+            self.client.post(reverse("household:archive_routine", args=[routine.pk])).status_code,
             404,
         )
