@@ -1,5 +1,6 @@
 from django.core.exceptions import ValidationError
 from wagtail import blocks
+from wagtail.embeds.blocks import EmbedBlock
 from wagtail.images.blocks import ImageBlock, ImageChooserBlock
 
 
@@ -187,7 +188,7 @@ class GuideBodyBlock(blocks.StreamBlock):
         group="Core content",
         description="A short quotation. Do not use for decorative pull quotes.",
     )
-    embed = blocks.EmbedBlock(
+    embed = EmbedBlock(
         label="Media embed",
         icon="media",
         group="Media",
