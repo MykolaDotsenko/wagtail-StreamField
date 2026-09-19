@@ -149,7 +149,7 @@ test("daily routine completion advances to the next occurrence without creating 
 
   await page.getByLabel("Routine").fill(title);
   await page.getByLabel("Next due").fill(isoToday());
-  await page.getByLabel("Repeat").selectOption("daily");
+  await page.getByLabel("Repeat", { exact: true }).selectOption("daily");
   await page.getByRole("button", { name: "Add routine" }).click();
 
   const dueCard = page.locator(".routine-card").filter({ hasText: title }).first();
