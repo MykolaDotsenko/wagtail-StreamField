@@ -600,6 +600,8 @@ def set_dinner(
     custom_name: str = "",
 ) -> MealPlanEntry:
     if recipe is not None:
+        if not recipe.live:
+            raise ValueError("Dinner recipe must be live.")
         name = recipe.title
     else:
         name = ShoppingItem.normalize_display_name(custom_name)
