@@ -8,18 +8,35 @@ from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_POST
 
-from .forms import PantryItemForm, ShoppingItemCreateForm
-from .models import PantryItem, ShoppingItem
-from .selectors import deleted_shopping_item_for_undo, pantry_snapshot, shopping_snapshot
+from .forms import (
+    PantryItemForm,
+    RoutineActionForm,
+    RoutineForm,
+    RoutinePostponeForm,
+    ShoppingItemCreateForm,
+)
+from .models import PantryItem, Routine, ShoppingItem
+from .selectors import (
+    deleted_shopping_item_for_undo,
+    pantry_snapshot,
+    routine_snapshot,
+    shopping_snapshot,
+)
 from .services import (
     add_pantry_item_to_shopping,
+    archive_routine,
     add_shopping_item,
+    complete_routine,
     create_pantry_item,
+    create_routine,
     delete_pantry_item,
     delete_shopping_item,
+    postpone_routine,
     restore_shopping_item,
+    skip_routine,
     toggle_shopping_item,
     update_pantry_item,
+    update_routine,
 )
 
 
@@ -230,3 +247,158 @@ def pantry_to_shopping(request, item_id):
             f"{result.item.name} was already on Shopping — quantity updated.",
         )
     return redirect("household:pantry")
+
+
+@login_required
+def routines(request):
+    form = RoutineForm(request.POST or None, initial={"due_on": timezone.localdate()})
+
+    if request.method == "POST" and form.is_valid():
+        routine = create_routine(user=request.user, data=form.cleaned_data)
+        messages.success(request, f"{routine.title} added to your home rhythm.")
+        return redirect("household:routines")
+
+    return render(
+        request,
+        "household/routines.html",
+        {
+            "form": form,
+            "snapshot": routine_snapshot(user=request.user),
+            "today": timezone.localdate(),
+        },
+    )
+
+
+@login_required
+def edit_routine(request, routine_id):
+    try:
+        routine = Routine.objects.get(pk=routine_id, user=request.user)
+    except Routine.DoesNotExist as exc:
+        raise Http404 from exc
+
+    form = RoutineForm(
+        request.POST or None,
+        initial={
+            "title": routine.title,
+            "room": routine.room,
+            "frequency": routine.frequency,
+            "due_on": routine.due_on,
+            "expected_duration_minutes": routine.expected_duration_minutes,
+        },
+    )
+
+    if request.method == "POST" and form.is_valid():
+        routine = update_routine(
+            user=request.user,
+            routine_id=routine.pk,
+            data=form.cleaned_data,
+        )
+        messages.success(request, f"{routine.title} updated.")
+        return redirect("household:routines")
+
+    return render(
+        request,
+        "household/routine_edit.html",
+        {
+            "form": form,
+            "routine": routine,
+        },
+    )
+
+
+def _routine_action_result(request, routine_id, *, outcome):
+    form = RoutineActionForm(request.POST)
+    if not form.is_valid():
+        raise Http404
+
+    try:
+        if outcome == "complete":
+            routine = complete_routine(
+                user=request.user,
+                routine_id=routine_id,
+                expected_scheduled_for=form.cleaned_data["scheduled_for"],
+                today=timezone.localdate(),
+            )
+            message = (
+                f"{routine.title} completed."
+                if not routine.active
+                else f"{routine.title} completed. Next due {routine.due_on:%b %d}."
+            )
+        else:
+            routine = skip_routine(
+                user=request.user,
+                routine_id=routine_id,
+                expected_scheduled_for=form.cleaned_data["scheduled_for"],
+                today=timezone.localdate(),
+            )
+            message = (
+                f"{routine.title} skipped."
+                if not routine.active
+                else f"{routine.title} skipped. Next due {routine.due_on:%b %d}."
+            )
+    except Routine.DoesNotExist as exc:
+        raise Http404 from exc
+    except StaleRoutineAction:
+        messages.info(request, "Routine was already updated. Showing the latest schedule.")
+    else:
+        messages.success(request, message)
+
+    return redirect("household:routines")
+
+
+@login_required
+@require_POST
+def complete_routine_view(request, routine_id):
+    return _routine_action_result(request, routine_id, outcome="complete")
+
+
+@login_required
+@require_POST
+def skip_routine_view(request, routine_id):
+    return _routine_action_result(request, routine_id, outcome="skip")
+
+
+@login_required
+@require_POST
+def postpone_routine_view(request, routine_id):
+    try:
+        routine = Routine.objects.get(pk=routine_id, user=request.user, active=True)
+    except Routine.DoesNotExist as exc:
+        raise Http404 from exc
+
+    form = RoutinePostponeForm(request.POST, routine=routine)
+    if not form.is_valid():
+        messages.error(request, "Choose a valid later date to postpone this routine.")
+        return redirect("household:routines")
+
+    try:
+        routine = postpone_routine(
+            user=request.user,
+            routine_id=routine.pk,
+            expected_scheduled_for=form.cleaned_data["scheduled_for"],
+            expected_effective_due_on=form.cleaned_data["expected_effective_due_on"],
+            postponed_to=form.cleaned_data["postponed_to"],
+        )
+    except StaleRoutineAction:
+        messages.info(request, "Routine was already updated. Showing the latest schedule.")
+    except ValueError:
+        messages.error(request, "Choose a date after the current due date.")
+    else:
+        messages.success(
+            request,
+            f"{routine.title} postponed to {routine.postponed_until:%b %d}.",
+        )
+
+    return redirect("household:routines")
+
+
+@login_required
+@require_POST
+def archive_routine_view(request, routine_id):
+    try:
+        routine = archive_routine(user=request.user, routine_id=routine_id)
+    except Routine.DoesNotExist as exc:
+        raise Http404 from exc
+
+    messages.success(request, f"{routine.title} archived.")
+    return redirect("household:routines")
