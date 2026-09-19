@@ -1,7 +1,6 @@
 from dataclasses import dataclass
 
-from django.db import transaction
-from django.db.models import F
+from django.db import models, transaction
 from django.utils import timezone
 
 from .models import ShoppingItem
@@ -125,7 +124,7 @@ def add_shopping_item(*, user, name: str, quantity: int = 1, category: str = AUT
     if created:
         return AddShoppingResult(item=item, created=True)
 
-    ShoppingItem.objects.filter(pk=item.pk).update(quantity=F("quantity") + quantity)
+    ShoppingItem.objects.filter(pk=item.pk).update(quantity=models.F("quantity") + quantity)
     item.refresh_from_db()
 
     should_update_category = (
@@ -176,7 +175,7 @@ def toggle_shopping_item(*, user, item_id: int) -> MutationResult:
 
     if existing_open:
         ShoppingItem.objects.filter(pk=existing_open.pk).update(
-            quantity=F("quantity") + item.quantity
+            quantity=models.F("quantity") + item.quantity
         )
         existing_open.refresh_from_db()
         item.deleted_at = timezone.now()
@@ -244,7 +243,7 @@ def restore_shopping_item(*, user, item_id: int) -> MutationResult:
         )
         if existing_open:
             ShoppingItem.objects.filter(pk=existing_open.pk).update(
-                quantity=F("quantity") + item.quantity
+                quantity=models.F("quantity") + item.quantity
             )
             existing_open.refresh_from_db()
             item.delete()
