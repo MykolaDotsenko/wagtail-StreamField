@@ -11,7 +11,7 @@ from recipes.models import Ingredient, RecipeIndexPage, RecipeIngredient, Recipe
 
 
 class Command(BaseCommand):
-    help = "Create deterministic local demo content and a demo household account."
+    help = "Create deterministic local demo content and a non-privileged demo household account."
 
     def add_arguments(self, parser):
         parser.add_argument("--username", default="demo")
@@ -32,8 +32,11 @@ class Command(BaseCommand):
 
         user_model = get_user_model()
         user, created = user_model.objects.get_or_create(username=username)
+        user.is_active = True
+        user.is_staff = False
+        user.is_superuser = False
         user.set_password(password)
-        user.save(update_fields=["password"])
+        user.save(update_fields=["is_active", "is_staff", "is_superuser", "password"])
 
         if options["reset"]:
             MealPlanEntry.objects.filter(user=user).delete()
