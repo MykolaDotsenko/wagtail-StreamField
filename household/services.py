@@ -128,7 +128,13 @@ def add_shopping_item(*, user, name: str, quantity: int = 1, category: str = AUT
     ShoppingItem.objects.filter(pk=item.pk).update(quantity=F("quantity") + quantity)
     item.refresh_from_db()
 
-    if item.category == ShoppingItem.Category.OTHER and resolved_category != item.category:
+    should_update_category = (
+        category != AUTO_CATEGORY and item.category != resolved_category
+    ) or (
+        item.category == ShoppingItem.Category.OTHER
+        and resolved_category != ShoppingItem.Category.OTHER
+    )
+    if should_update_category:
         item.category = resolved_category
         item.save(update_fields=["category", "name", "normalized_name", "updated_at"])
 
@@ -241,6 +247,7 @@ def restore_shopping_item(*, user, item_id: int) -> MutationResult:
                 quantity=F("quantity") + item.quantity
             )
             existing_open.refresh_from_db()
+            item.delete()
             return MutationResult(item=existing_open, merged=True)
 
     item.deleted_at = None
