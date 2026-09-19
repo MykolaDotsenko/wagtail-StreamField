@@ -257,3 +257,134 @@ class PantryItem(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class Routine(models.Model):
+    class Frequency(models.TextChoices):
+        ONE_TIME = "one_time", "One-time"
+        DAILY = "daily", "Daily"
+        WEEKLY = "weekly", "Weekly"
+        MONTHLY = "monthly", "Monthly"
+
+    class Room(models.TextChoices):
+        WHOLE_HOME = "whole_home", "Whole home"
+        KITCHEN = "kitchen", "Kitchen"
+        BATHROOM = "bathroom", "Bathroom"
+        BEDROOM = "bedroom", "Bedroom"
+        LIVING_ROOM = "living_room", "Living room"
+        OUTDOOR = "outdoor", "Outdoor"
+        OTHER = "other", "Other"
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="routines",
+    )
+    title = models.CharField(max_length=120)
+    room = models.CharField(
+        max_length=20,
+        choices=Room.choices,
+        default=Room.WHOLE_HOME,
+    )
+    frequency = models.CharField(
+        max_length=12,
+        choices=Frequency.choices,
+        default=Frequency.WEEKLY,
+    )
+    due_on = models.DateField()
+    postponed_until = models.DateField(blank=True, null=True)
+    recurrence_anchor_day = models.PositiveSmallIntegerField(blank=True, null=True)
+    expected_duration_minutes = models.PositiveSmallIntegerField(blank=True, null=True)
+    active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["due_on", "title", "pk"]
+        indexes = [
+            models.Index(
+                fields=["user", "active", "due_on"],
+                name="routine_due_lookup",
+            )
+        ]
+        constraints = [
+            models.CheckConstraint(
+                condition=(
+                    models.Q(expected_duration_minutes__isnull=True)
+                    | models.Q(expected_duration_minutes__gte=1)
+                ),
+                name="routine_duration_positive",
+            ),
+            models.CheckConstraint(
+                condition=(
+                    models.Q(postponed_until__isnull=True)
+                    | models.Q(postponed_until__gt=models.F("due_on"))
+                ),
+                name="routine_postpone_after_due",
+            ),
+            models.CheckConstraint(
+                condition=(
+                    models.Q(
+                        frequency="monthly",
+                        recurrence_anchor_day__gte=1,
+                        recurrence_anchor_day__lte=31,
+                    )
+                    | (
+                        ~models.Q(frequency="monthly")
+                        & models.Q(recurrence_anchor_day__isnull=True)
+                    )
+                ),
+                name="routine_monthly_anchor_consistent",
+            ),
+        ]
+
+    @property
+    def effective_due_on(self):
+        return self.postponed_until or self.due_on
+
+    def __str__(self):
+        return self.title
+
+
+class RoutineEvent(models.Model):
+    class Outcome(models.TextChoices):
+        COMPLETED = "completed", "Completed"
+        SKIPPED = "skipped", "Skipped"
+        POSTPONED = "postponed", "Postponed"
+
+    routine = models.ForeignKey(
+        Routine,
+        on_delete=models.CASCADE,
+        related_name="events",
+    )
+    scheduled_for = models.DateField()
+    outcome = models.CharField(max_length=12, choices=Outcome.choices)
+    postponed_to = models.DateField(blank=True, null=True)
+    acted_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-acted_at", "-pk"]
+        constraints = [
+            models.CheckConstraint(
+                condition=(
+                    models.Q(
+                        outcome="postponed",
+                        postponed_to__isnull=False,
+                        postponed_to__gt=models.F("scheduled_for"),
+                    )
+                    | (
+                        models.Q(outcome__in=["completed", "skipped"])
+                        & models.Q(postponed_to__isnull=True)
+                    )
+                ),
+                name="routine_event_outcome_consistent",
+            ),
+            models.UniqueConstraint(
+                fields=["routine", "scheduled_for"],
+                condition=models.Q(outcome__in=["completed", "skipped"]),
+                name="unique_terminal_routine_occurrence",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.routine}: {self.get_outcome_display()}"
