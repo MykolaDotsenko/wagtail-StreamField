@@ -383,6 +383,39 @@ PR9 can reconcile by canonical Ingredient identity and degrade unsupported unit 
 
 ---
 
+## 2026-09-19 — How much Pantry certainty is enough for recipe readiness?
+
+Area: Domain / UX
+Status: Validated in PR9
+Confidence: High
+
+### Question
+
+When Pantry data is approximate, expired or uses an incompatible unit, should DomoNest still infer that a recipe ingredient is available?
+
+### Evidence
+
+Pantry was intentionally designed as low-maintenance state, so approximate labels do not carry numeric guarantees. Recipe requirements are structured and may use units that Pantry cannot compare safely. The product objective is to reduce mental load without creating false certainty.
+
+### Finding
+
+Prefer explicit UNKNOWN over guessed sufficiency.
+
+- expired → UNKNOWN;
+- approximate LOW → LOW;
+- approximate FULL/HALF + numeric recipe need → UNKNOWN;
+- exact safe mass/volume/item conversion → compare;
+- unsupported or incompatible units → UNKNOWN;
+- no owner-scoped match → MISSING.
+
+UNKNOWN is shown as "Check stock" and is never auto-added to Shopping.
+
+### Product/engineering impact
+
+PR9 creates one deterministic readiness contract reusable by RecipePage and later MealPlan readiness. The Shopping action handles only non-optional MISSING + LOW rows and is idempotent.
+
+---
+
 ## Open research backlog
 
 These questions should be answered only when their PR approaches:
