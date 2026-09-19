@@ -128,6 +128,8 @@ Acceptance:
 
 ## PR 6 — Today dashboard
 
+Status: implemented on `pr/06-today-dashboard`; final acceptance depends on CI.
+
 Goal:
 Create the product's main decision surface.
 
