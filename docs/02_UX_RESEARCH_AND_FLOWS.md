@@ -192,6 +192,14 @@ The baseline Shopping flow uses ordinary Django forms and redirects. No JavaScri
 
 Pantry is **not accounting software**.
 
+PR4 baseline:
+- name-only add creates Approximate / Full;
+- Stock details is progressive disclosure;
+- precise tracking is opt-in;
+- Needs attention is derived from current state;
+- expiry missing is shown as "Expiry unknown";
+- Pantry → Shopping is idempotent.
+
 Two quantity modes are planned:
 - precise: 1.5 kg;
 - approximate: full / half / low.
