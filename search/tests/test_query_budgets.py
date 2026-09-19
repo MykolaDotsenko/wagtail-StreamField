@@ -26,7 +26,7 @@ class DiscoverQueryBudgetTests(TestCase):
             )
             MealPlanEntry.objects.create(
                 user=user,
-                date=today,
+                date=today + timezone.timedelta(days=number),
                 name=f"Find dinner {number}",
             )
 
