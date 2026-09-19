@@ -1,11 +1,95 @@
 {% extends "base.html" %}
-
-<!-- load wagtailcore_tags by adding this: -->
 {% load wagtailcore_tags %}
 
 {% block body_class %}template-homepage{% endblock %}
 
-<!-- replace everything below with: -->
 {% block content %}
-    {{ page.body|richtext }}
+{% if page.sections %}
+    {% for block in page.sections %}
+        {% if block.block_type == "hero" %}
+            <section class="hero-shell">
+                <div class="hero-copy">
+                    <p class="eyebrow">{{ page.eyebrow }}</p>
+                    <h1>{{ block.value.title }}</h1>
+                    <p class="hero-lead">{{ block.value.text }}</p>
+                    <div class="hero-actions">
+                        <a class="button button-primary" href="{{ block.value.primary_url }}">{{ block.value.primary_label }}</a>
+                        <a class="button button-secondary" href="{{ block.value.secondary_url }}">{{ block.value.secondary_label }}</a>
+                    </div>
+                    <div class="trust-row">
+                        <span>✓ Django-owned household data</span>
+                        <span>✓ Wagtail-powered guides</span>
+                        <span>✓ Mobile-first routines</span>
+                    </div>
+                </div>
+                <div class="dashboard-preview" aria-label="DomoNest dashboard preview">
+                    <div class="preview-top"><span>Today</span><strong>4 things need attention</strong></div>
+                    <div class="preview-grid">
+                        <article><span class="mini-icon">🛒</span><strong>Shopping</strong><small>7 items · 3 checked</small></article>
+                        <article><span class="mini-icon">🥕</span><strong>Pantry</strong><small>2 items expiring soon</small></article>
+                        <article><span class="mini-icon">🧺</span><strong>Chores</strong><small>Kitchen reset · today</small></article>
+                        <article><span class="mini-icon">🍲</span><strong>Dinner</strong><small>Tomato lentil soup</small></article>
+                    </div>
+                </div>
+            </section>
+        {% elif block.block_type == "features" %}
+            <section class="content-section" id="features">
+                <div class="section-heading">
+                    <p class="eyebrow">One home, one clear system</p>
+                    <h2>{{ block.value.heading }}</h2>
+                    {% if block.value.intro %}<p>{{ block.value.intro }}</p>{% endif %}
+                </div>
+                <div class="feature-grid">
+                    {% for item in block.value.items %}
+                        <article class="feature-card">
+                            <span class="feature-icon" aria-hidden="true">{{ item.icon }}</span>
+                            <h3>{{ item.title }}</h3>
+                            <p>{{ item.text }}</p>
+                        </article>
+                    {% endfor %}
+                </div>
+            </section>
+        {% elif block.block_type == "callout" %}
+            <section class="callout">
+                <div>
+                    {% if block.value.kicker %}<p class="eyebrow">{{ block.value.kicker }}</p>{% endif %}
+                    <h2>{{ block.value.heading }}</h2>
+                    <p>{{ block.value.text }}</p>
+                </div>
+                {% if block.value.button_label %}<a class="button button-primary" href="{{ block.value.button_url }}">{{ block.value.button_label }}</a>{% endif %}
+            </section>
+        {% elif block.block_type == "rich_text" %}
+            <section class="prose content-section">{{ block.value|richtext }}</section>
+        {% endif %}
+    {% endfor %}
+{% else %}
+    <section class="hero-shell">
+        <div class="hero-copy">
+            <p class="eyebrow">{{ page.eyebrow }}</p>
+            <h1>Your household, finally in one calm place.</h1>
+            <p class="hero-lead">Plan shopping, pantry stock and recurring home routines without spreadsheets, sticky notes or app overload.</p>
+            <div class="hero-actions">
+                <a class="button button-primary" href="/app/">Open dashboard</a>
+                <a class="button button-secondary" href="#features">See how it works</a>
+            </div>
+        </div>
+        <div class="dashboard-preview">
+            <div class="preview-top"><span>Today</span><strong>Home at a glance</strong></div>
+            <div class="preview-grid">
+                <article><span class="mini-icon">🛒</span><strong>Shopping</strong><small>Build one shared-ready list</small></article>
+                <article><span class="mini-icon">🥫</span><strong>Pantry</strong><small>Use food before it expires</small></article>
+                <article><span class="mini-icon">🧺</span><strong>Chores</strong><small>Keep routines visible</small></article>
+                <article><span class="mini-icon">📚</span><strong>Guides</strong><small>Wagtail-managed home knowledge</small></article>
+            </div>
+        </div>
+    </section>
+    <section class="content-section" id="features">
+        <div class="section-heading"><p class="eyebrow">Designed for real homes</p><h2>Less remembering. More living.</h2></div>
+        <div class="feature-grid">
+            <article class="feature-card"><span class="feature-icon">🛒</span><h3>Smart shopping</h3><p>Capture essentials in seconds, group them by category and clear the list as you shop.</p></article>
+            <article class="feature-card"><span class="feature-icon">🥫</span><h3>Pantry awareness</h3><p>Track what is at home, what is running low and what should be used soon.</p></article>
+            <article class="feature-card"><span class="feature-icon">🧺</span><h3>Home routines</h3><p>Turn recurring chores into a lightweight daily rhythm instead of mental load.</p></article>
+        </div>
+    </section>
+{% endif %}
 {% endblock %}
