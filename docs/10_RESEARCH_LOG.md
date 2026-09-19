@@ -203,6 +203,58 @@ Re-evaluate the mobile five-slot navigation once Plan, Home modules and Quick Ad
 
 ---
 
+## 2026-09-19 — How much intelligence should Quick Add use?
+
+Area: UX / Domain
+Status: Validated for PR3
+Confidence: High
+
+### Question
+
+Should Quick Add use fuzzy matching or AI to prevent duplicates and categorize shopping items?
+
+### Evidence
+
+The MVP requirement is fast capture with predictable behavior. Fuzzy matching can silently merge distinct products, while a small deterministic category dictionary can reduce common input effort without claiming semantic understanding.
+
+### Finding
+
+Use conservative normalized identity for duplicate detection and a transparent deterministic category inference for common exact item names. Unknown items fall back to Other. Users can override category in progressive details.
+
+### Product/engineering impact
+
+- Unicode NFKC + whitespace collapse + casefold for identity.
+- Conditional database uniqueness for active items.
+- No fuzzy matching.
+- No AI.
+- Category suggestions remain editable.
+
+---
+
+## 2026-09-19 — How should Shopping removal support Undo without client state?
+
+Area: UX / Architecture
+Status: Validated for PR3
+Confidence: High
+
+### Question
+
+Can safe Undo be delivered without adding JavaScript state management?
+
+### Evidence
+
+Django redirects and owner-scoped server state are sufficient: mark the row deleted, redirect with its ID, re-resolve through the authenticated user, and submit a CSRF-protected POST to restore.
+
+### Finding
+
+Use server-side soft delete plus a POST restore action. A query-string ID is a presentation hint, not authorization.
+
+### Product/engineering impact
+
+The view never trusts the ID by itself. Both display and restore operations scope by authenticated user. A restore collision merges into the newer equivalent open item.
+
+---
+
 ## Open research backlog
 
 These questions should be answered only when their PR approaches:
