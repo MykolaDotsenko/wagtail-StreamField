@@ -3,3 +3,4 @@ wagtail==7.4.3
 gunicorn==26.2.0
 psycopg[binary]==3.3.6
 whitenoise==6.12.0
+django-storages-s3==0.1.4

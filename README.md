@@ -119,7 +119,60 @@ username: demo
 password: domonest-demo
 ```
 
-The demo password is intentionally local-only. Do not reuse it in a deployed environment.
+The demo password is intentionally local-only. Do not reuse it for a privileged or real household account.
+
+## Deploy on Render
+
+The repository now includes a production-aware [Render Blueprint](./render.yaml) for a one-click portfolio deployment:
+
+- Python 3.13 pinned through `.python-version`;
+- Frankfurt web service + PostgreSQL 17;
+- deploys gated on passing GitHub CI;
+- generated Django secret key;
+- PostgreSQL credentials wired through Render Blueprint references;
+- automatic Render hostname / CSRF / Wagtail admin URL discovery;
+- `/health/` as the deployment health check;
+- production `check --deploy` before process startup;
+- migrations on startup for Render Free, where `preDeployCommand` is unavailable;
+- deterministic public demo reset controlled by environment variables;
+- optional S3-compatible media storage for Wagtail uploads.
+
+### Create the portfolio deployment
+
+1. Merge the deployment PR to `master`.
+2. In Render, choose **New → Blueprint**.
+3. Select `MykolaDotsenko/wagtail-StreamField`.
+4. Review `render.yaml` and create the resources.
+5. Wait for CI and the Render health check to pass.
+
+The Blueprint creates the free preview configuration. The seeded public demo account is deliberately non-privileged:
+
+```text
+username: demo
+password: domonest-demo
+```
+
+The account is forced to `is_staff=False` and `is_superuser=False` every time the demo seed runs. On the free portfolio configuration, its private demo state is restored on service startup so an abandoned or modified public demo can recover automatically.
+
+### Verify a deployment
+
+Run the standard-library smoke check against the live URL:
+
+```bash
+python scripts/deployment_smoke.py https://YOUR-SERVICE.onrender.com
+```
+
+It verifies the database-backed health endpoint, root page, no-store health semantics, HTTPS security headers and HSTS.
+
+### Persistent Wagtail media
+
+Render Free has an ephemeral filesystem. The demo seed does not require uploaded media, so the public portfolio experience can run without a media bucket. Before enabling editor uploads, configure shared storage by setting `AWS_STORAGE_BUCKET_NAME` and the matching S3-compatible credentials / endpoint variables from `.env.example`.
+
+The production settings then switch Wagtail media and image renditions to `storages.s3.S3Storage`. This supports AWS S3 and compatible providers such as Cloudflare R2 or DigitalOcean Spaces while WhiteNoise remains responsible only for versioned static assets.
+
+For a paid Render service, move database migrations to Render's `preDeployCommand`, set `DOMONEST_RUN_MIGRATIONS_ON_START=false`, disable `DOMONEST_AUTO_SEED_DEMO` for a real household deployment, and use durable media storage.
+
+See the full [deployment runbook](./docs/11_DEPLOYMENT_RUNBOOK.md).
 
 ### Re-render the README screenshot
 
@@ -147,9 +200,10 @@ docs/images/domonest-today.png
 
 ## Production baseline
 
-Copy `.env.example`, use `mysite.settings.production`, configure PostgreSQL and persistent media storage, then:
+For non-Render environments, copy `.env.example`, use `mysite.settings.production`, configure PostgreSQL and durable media storage, then run:
 
 ```bash
+python -m pip install -r requirements.txt
 python manage.py check --deploy
 python manage.py migrate --noinput
 python manage.py collectstatic --noinput
@@ -162,7 +216,7 @@ Health/readiness endpoint:
 GET /health/
 ```
 
-See the full [deployment runbook](./docs/11_DEPLOYMENT_RUNBOOK.md).
+The included Docker image now honors `PORT`, `WEB_CONCURRENCY`, and `GUNICORN_TIMEOUT` at runtime.
 
 ## Engineering handbook
 

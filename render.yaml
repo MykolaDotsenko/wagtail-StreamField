@@ -1,0 +1,68 @@
+services:
+  - type: web
+    name: domonest
+    runtime: python
+    plan: free
+    region: frankfurt
+    branch: master
+    autoDeployTrigger: checksPass
+    buildCommand: >-
+      python -m pip install --upgrade pip &&
+      python -m pip install -r requirements.txt &&
+      DJANGO_SECRET_KEY=render-build-only-not-used-at-runtime
+      DJANGO_ALLOWED_HOSTS=localhost
+      WAGTAILADMIN_BASE_URL=http://localhost
+      python manage.py collectstatic --noinput --clear
+    startCommand: bash scripts/render-start.sh
+    healthCheckPath: /health/
+    maxShutdownDelaySeconds: 30
+    envVars:
+      - key: DJANGO_SETTINGS_MODULE
+        value: mysite.settings.production
+      - key: DJANGO_SECRET_KEY
+        generateValue: true
+      - key: DJANGO_TRUST_X_FORWARDED_PROTO
+        value: "true"
+      - key: DJANGO_SECURE_HSTS_SECONDS
+        value: "3600"
+      - key: WEB_CONCURRENCY
+        value: "1"
+      - key: POSTGRES_DB
+        fromDatabase:
+          name: domonest-db
+          property: database
+      - key: POSTGRES_USER
+        fromDatabase:
+          name: domonest-db
+          property: user
+      - key: POSTGRES_PASSWORD
+        fromDatabase:
+          name: domonest-db
+          property: password
+      - key: POSTGRES_HOST
+        fromDatabase:
+          name: domonest-db
+          property: host
+      - key: POSTGRES_PORT
+        fromDatabase:
+          name: domonest-db
+          property: port
+      - key: POSTGRES_CONN_MAX_AGE
+        value: "60"
+      - key: DOMONEST_RUN_MIGRATIONS_ON_START
+        value: "true"
+      - key: DOMONEST_AUTO_SEED_DEMO
+        value: "true"
+      - key: DOMONEST_DEMO_USERNAME
+        value: demo
+      - key: DOMONEST_DEMO_PASSWORD
+        value: domonest-demo
+
+databases:
+  - name: domonest-db
+    plan: free
+    region: frankfurt
+    postgresMajorVersion: "17"
+    databaseName: domonest
+    user: domonest
+    ipAllowList: []
