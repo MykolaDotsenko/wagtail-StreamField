@@ -233,6 +233,8 @@ Acceptance:
 
 ## PR 11 — Global search / Discover polish
 
+Status: implemented on `pr/11-discover-search`; final acceptance depends on CI.
+
 Goal:
 Make public knowledge and private home state easy to retrieve.
 
