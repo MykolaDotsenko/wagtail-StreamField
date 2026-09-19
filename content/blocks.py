@@ -3,7 +3,6 @@ from wagtail import blocks
 from wagtail.embeds.blocks import EmbedBlock
 from wagtail.images.blocks import ImageBlock, ImageChooserBlock
 
-
 RICH_TEXT_FEATURES = ["bold", "italic", "link", "ul", "ol"]
 
 
