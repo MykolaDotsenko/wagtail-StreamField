@@ -1,47 +1,51 @@
 {% load static wagtailcore_tags wagtailuserbar %}
-
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="utf-8" />
-        <title>
-            {% block title %}
-            {% if page.seo_title %}{{ page.seo_title }}{% else %}{{ page.title }}{% endif %}
-            {% endblock %}
-            {% block title_suffix %}
-            {% wagtail_site as current_site %}
-            {% if current_site and current_site.site_name %}- {{ current_site.site_name }}{% endif %}
-            {% endblock %}
-        </title>
-        {% if page.search_description %}
-        <meta name="description" content="{{ page.search_description }}" />
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#f5f2ea">
+    <title>{% block title %}{% if page.seo_title %}{{ page.seo_title }}{% elif page %}{{ page.title }}{% else %}DomoNest{% endif %}{% endblock %} · DomoNest</title>
+    {% if page.search_description %}<meta name="description" content="{{ page.search_description }}">{% else %}<meta name="description" content="Plan meals, shopping, pantry stock and home routines in one calm household workspace.">{% endif %}
+    {% if request.in_preview_panel %}<base target="_blank">{% endif %}
+    <link rel="stylesheet" href="{% static 'css/mysite.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body class="{% block body_class %}{% endblock %}">
+    {% wagtailuserbar %}
+    <a class="skip-link" href="#main-content">Skip to content</a>
+    <header class="site-header">
+        <a class="brand" href="/">
+            <span class="brand-mark" aria-hidden="true">⌂</span>
+            <span>DomoNest</span>
+        </a>
+        <nav class="site-nav" aria-label="Primary">
+            <a href="/#features">Features</a>
+            <a href="/blog/">Home guides</a>
+            <a href="{% url 'search' %}">Search</a>
+            {% if request.user.is_authenticated %}
+                <a class="nav-cta" href="{% url 'household:dashboard' %}">Open dashboard</a>
+            {% else %}
+                <a class="nav-cta" href="{% url 'login' %}">Try dashboard</a>
+            {% endif %}
+        </nav>
+    </header>
+
+    <main id="main-content">
+        {% if messages %}
+            <div class="message-stack" aria-live="polite">
+                {% for message in messages %}<div class="message">{{ message }}</div>{% endfor %}
+            </div>
         {% endif %}
-        <meta name="viewport" content="width=device-width, initial-scale=1" />
-
-        {# Force all links in the live preview panel to be opened in a new tab #}
-        {% if request.in_preview_panel %}
-        <base target="_blank">
-        {% endif %}
-
-        {# Global stylesheets #}
-        <link rel="stylesheet" type="text/css" href="{% static 'css/mysite.css' %}">
-        <link rel="stylesheet" type="text/css" href="{% static 'blog/css/blog.css' %}">
-
-        {% block extra_css %}
-        {# Override this in templates to add extra stylesheets #}
-        {% endblock %}
-    </head>
-
-    <body class="{% block body_class %}{% endblock %}">
-        {% wagtailuserbar %}
-
         {% block content %}{% endblock %}
+    </main>
 
-        {# Global javascript #}
-        <script type="text/javascript" src="{% static 'js/mysite.js' %}"></script>
-
-        {% block extra_js %}
-        {# Override this in templates to add extra javascript #}
-        {% endblock %}
-    </body>
+    <footer class="site-footer">
+        <div>
+            <strong>DomoNest</strong>
+            <p>A calm household operating system built with Django + Wagtail.</p>
+        </div>
+        <p>Portfolio demo · Privacy-first · No tracking</p>
+    </footer>
+</body>
 </html>
