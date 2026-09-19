@@ -326,6 +326,7 @@ class Routine(models.Model):
                 condition=(
                     models.Q(
                         frequency="monthly",
+                        recurrence_anchor_day__isnull=False,
                         recurrence_anchor_day__gte=1,
                         recurrence_anchor_day__lte=31,
                     )
