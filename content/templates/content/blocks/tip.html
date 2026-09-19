@@ -1,0 +1,5 @@
+{% load wagtailcore_tags %}
+<aside class="guide-callout guide-callout--tip">
+    <strong class="guide-callout__title">{{ value.title|default:"Tip" }}</strong>
+    <div class="guide-callout__body">{{ value.body|richtext }}</div>
+</aside>
