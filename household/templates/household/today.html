@@ -1,0 +1,117 @@
+{% extends "base.html" %}
+
+{% block title %}Today{% endblock %}
+{% block body_class %}template-today{% endblock %}
+
+{% block content %}
+<section class="today-hero" aria-labelledby="today-title">
+    <div>
+        <p class="eyebrow">{{ today|date:"l, F j" }}</p>
+        <h1 id="today-title">Today</h1>
+        <p class="lede">
+            {% if snapshot.total_action_count %}
+                {{ snapshot.total_action_count }} thing{{ snapshot.total_action_count|pluralize }} need your attention.
+            {% else %}
+                Nothing urgent needs your attention right now.
+            {% endif %}
+        </p>
+    </div>
+</section>
+
+{% if snapshot.signals %}
+    <section class="today-section" aria-labelledby="attention-title">
+        <div class="section-heading">
+            <div>
+                <p class="eyebrow">Next best actions</p>
+                <h2 id="attention-title">Needs attention</h2>
+            </div>
+            {% if snapshot.has_more %}
+                <span class="meta-text">Showing the first {{ snapshot.signals|length }}</span>
+            {% endif %}
+        </div>
+
+        <ol class="today-feed">
+            {% for signal in snapshot.signals %}
+                <li class="today-card today-card--{{ signal.kind }}">
+                    <div class="today-card__body">
+                        {% if signal.priority <= 1 %}
+                            <span class="status-badge status-badge--danger">Act first</span>
+                        {% elif signal.priority <= 4 %}
+                            <span class="status-badge status-badge--attention">Today</span>
+                        {% else %}
+                            <span class="status-badge status-badge--calm">Ready</span>
+                        {% endif %}
+                        <h3>{{ signal.title }}</h3>
+                        <p>{{ signal.detail }}</p>
+                    </div>
+
+                    {% if signal.destination == "routines" %}
+                        <a class="button button--secondary" href="{% url 'household:routines' %}">Open Home rhythm</a>
+                    {% elif signal.destination == "pantry" %}
+                        <a class="button button--secondary" href="{% url 'household:pantry' %}">Open Pantry</a>
+                    {% elif signal.destination == "shopping" %}
+                        <a class="button button--secondary" href="{% url 'household:shopping' %}">Open Shopping</a>
+                    {% endif %}
+                </li>
+            {% endfor %}
+        </ol>
+    </section>
+{% else %}
+    <section class="empty-state today-empty" aria-labelledby="today-clear-title">
+        <div class="empty-state__icon" aria-hidden="true">✓</div>
+        <div>
+            <h2 id="today-clear-title">Home is in a calm state</h2>
+            <p>Add a shopping item, pantry staple or routine whenever something is worth remembering.</p>
+        </div>
+        <div class="cluster">
+            <a class="button button--primary" href="{% url 'household:shopping' %}">Open Shopping</a>
+            <a class="button button--secondary" href="{% url 'household:routines' %}">Open Home rhythm</a>
+        </div>
+    </section>
+{% endif %}
+
+<section class="today-section" aria-labelledby="home-overview-title">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Home</p>
+            <h2 id="home-overview-title">Keep the system light</h2>
+        </div>
+    </div>
+
+    <div class="today-shortcuts">
+        <a class="surface-panel today-shortcut" href="{% url 'household:shopping' %}">
+            <span class="today-shortcut__value">{{ snapshot.shopping_count }}</span>
+            <span>
+                <strong>Shopping</strong>
+                <small>active item{{ snapshot.shopping_count|pluralize }}</small>
+            </span>
+        </a>
+
+        <a class="surface-panel today-shortcut" href="{% url 'household:pantry' %}">
+            <span class="today-shortcut__value">→</span>
+            <span>
+                <strong>Pantry</strong>
+                <small>low stock and use-soon</small>
+            </span>
+        </a>
+
+        <a class="surface-panel today-shortcut" href="{% url 'household:routines' %}">
+            <span class="today-shortcut__value">→</span>
+            <span>
+                <strong>Home rhythm</strong>
+                <small>recurring household work</small>
+            </span>
+        </a>
+    </div>
+</section>
+
+<section class="today-section">
+    <div class="surface-panel meal-placeholder">
+        <div>
+            <p class="eyebrow">Dinner</p>
+            <h2>Meal planning comes next</h2>
+            <p class="meta-text">Dinner readiness will appear here once recipe and meal planning are connected. No fake recommendation is shown before that data exists.</p>
+        </div>
+    </div>
+</section>
+{% endblock %}
