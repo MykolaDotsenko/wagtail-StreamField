@@ -50,6 +50,17 @@ class ShoppingItem(models.Model):
                 condition=models.Q(quantity__gte=1),
                 name="shopping_quantity_at_least_one",
             ),
+            models.CheckConstraint(
+                condition=~models.Q(normalized_name=""),
+                name="shopping_name_not_empty",
+            ),
+            models.CheckConstraint(
+                condition=(
+                    models.Q(status="open", completed_at__isnull=True)
+                    | models.Q(status="completed", completed_at__isnull=False)
+                ),
+                name="shopping_completion_state_consistent",
+            ),
             models.UniqueConstraint(
                 fields=["user", "normalized_name"],
                 condition=models.Q(status="open", deleted_at__isnull=True),
