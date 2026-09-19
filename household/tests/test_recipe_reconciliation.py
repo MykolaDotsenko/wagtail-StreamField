@@ -64,11 +64,7 @@ class RecipeReconciliationTests(TestCase):
             user=self.user,
             today=self.today,
         )
-        return next(
-            item
-            for item in snapshot.items
-            if item.line.ingredient_id == ingredient.pk
-        )
+        return next(item for item in snapshot.items if item.line.ingredient_id == ingredient.pk)
 
     def test_missing_when_no_owner_scoped_pantry_match_exists(self):
         ingredient, _ = self.add_line(
@@ -292,12 +288,8 @@ class RecipeReconciliationTests(TestCase):
             ),
             {tomato.pk, salt.pk},
         )
-        self.assertFalse(
-            ShoppingItem.objects.filter(user=self.user, ingredient=oil).exists()
-        )
-        self.assertFalse(
-            ShoppingItem.objects.filter(user=self.user, ingredient=parsley).exists()
-        )
+        self.assertFalse(ShoppingItem.objects.filter(user=self.user, ingredient=oil).exists())
+        self.assertFalse(ShoppingItem.objects.filter(user=self.user, ingredient=parsley).exists())
         self.assertTrue(
             all(
                 quantity == 1
