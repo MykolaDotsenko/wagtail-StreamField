@@ -5,6 +5,7 @@ from . import views
 app_name = "household"
 
 urlpatterns = [
+    path("today/", views.today, name="today"),
     path("routines/", views.routines, name="routines"),
     path("routines/<int:routine_id>/edit/", views.edit_routine, name="edit_routine"),
     path(
