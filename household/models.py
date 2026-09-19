@@ -26,6 +26,13 @@ class ShoppingItem(models.Model):
         on_delete=models.CASCADE,
         related_name="shopping_items",
     )
+    ingredient = models.ForeignKey(
+        "recipes.Ingredient",
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name="shopping_demands",
+    )
     name = models.CharField(max_length=120)
     normalized_name = models.CharField(max_length=255, editable=False)
     quantity = models.PositiveIntegerField(default=1)
@@ -67,11 +74,24 @@ class ShoppingItem(models.Model):
                 condition=models.Q(status="open", deleted_at__isnull=True),
                 name="unique_open_shopping_name_per_user",
             ),
+            models.UniqueConstraint(
+                fields=["user", "ingredient"],
+                condition=models.Q(
+                    ingredient__isnull=False,
+                    status="open",
+                    deleted_at__isnull=True,
+                ),
+                name="unique_open_shopping_ingredient_per_user",
+            ),
         ]
         indexes = [
             models.Index(
                 fields=["user", "status", "deleted_at", "category"],
                 name="shopping_active_lookup",
+            ),
+            models.Index(
+                fields=["user", "ingredient"],
+                name="shopping_ingredient_lookup",
             ),
         ]
 
@@ -130,6 +150,13 @@ class PantryItem(models.Model):
         settings.AUTH_USER_MODEL,
         on_delete=models.CASCADE,
         related_name="pantry_items",
+    )
+    ingredient = models.ForeignKey(
+        "recipes.Ingredient",
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name="pantry_entries",
     )
     name = models.CharField(max_length=120)
     normalized_name = models.CharField(max_length=255, editable=False)
@@ -213,11 +240,20 @@ class PantryItem(models.Model):
                 fields=["user", "normalized_name"],
                 name="unique_pantry_name_per_user",
             ),
+            models.UniqueConstraint(
+                fields=["user", "ingredient"],
+                condition=models.Q(ingredient__isnull=False),
+                name="unique_pantry_ingredient_per_user",
+            ),
         ]
         indexes = [
             models.Index(
                 fields=["user", "expires_on"],
                 name="pantry_expiry_lookup",
+            ),
+            models.Index(
+                fields=["user", "ingredient"],
+                name="pantry_ingredient_lookup",
             ),
         ]
 
