@@ -1,19 +1,32 @@
-[project]
-name = "wagtail-tutorial-site"
-version = "0.1.0"
-description = ""
-authors = [
-    {name = "Mykola Dotsenko",email = "docnikolaj1990@gmail.com"}
-]
-readme = "README.md"
-requires-python = ">=3.11,<3.12"
-dependencies = [
-    "wagtail (>=7.0,<7.1)",
-    "django (>=5.2,<5.3)",
-    "django-taggit (>=6.1.0,<7.0.0)"
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+extend-exclude = ["*/migrations/*"]
+
+[tool.ruff.lint]
+select = ["E4", "E7", "E9", "F", "I", "UP", "B"]
+
+[tool.ruff.lint.per-file-ignores]
+"mysite/settings/*.py" = ["F403", "F405"]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "lf"
+
+[tool.coverage.run]
+branch = true
+source = ["blog", "home", "search", "mysite"]
+omit = [
+    "*/migrations/*",
+    "mysite/settings/*",
+    "manage.py",
 ]
 
-
-[build-system]
-requires = ["poetry-core>=2.0.0,<3.0.0"]
-build-backend = "poetry.core.masonry.api"
+[tool.coverage.report]
+show_missing = true
+skip_covered = true
+exclude_also = [
+    "if TYPE_CHECKING:",
+    "if __name__ == .__main__.:",
+]
