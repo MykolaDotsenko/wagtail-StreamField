@@ -1,6 +1,6 @@
 from django.core.exceptions import ValidationError
 from wagtail import blocks
-from wagtail.images.blocks import ImageBlock
+from wagtail.images.blocks import ImageBlock, ImageChooserBlock
 
 
 RICH_TEXT_FEATURES = ["bold", "italic", "link", "ul", "ol"]
@@ -174,7 +174,7 @@ class GuideBodyBlock(blocks.StreamBlock):
         group="Core content",
         description="Body text with deliberately limited formatting.",
     )
-    image = blocks.ImageChooserBlock(
+    image = ImageChooserBlock(
         label="Legacy image",
         icon="image",
         group="Legacy",
