@@ -26,7 +26,7 @@ class ShoppingItem(models.Model):
         related_name="shopping_items",
     )
     name = models.CharField(max_length=120)
-    normalized_name = models.CharField(max_length=120, editable=False)
+    normalized_name = models.CharField(max_length=255, editable=False)
     quantity = models.PositiveIntegerField(default=1)
     category = models.CharField(
         max_length=20,
