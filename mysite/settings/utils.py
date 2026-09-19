@@ -22,3 +22,14 @@ def env_bool(name: str, *, default: bool = False) -> bool:
         return False
 
     raise ValueError(f"{name} must be one of: true/false, yes/no, on/off, 1/0")
+
+
+def env_int(name: str, *, default: int) -> int:
+    """Parse an integer environment variable with an explicit default."""
+    raw_value = os.environ.get(name)
+    if raw_value is None:
+        return default
+    try:
+        return int(raw_value)
+    except ValueError as exc:
+        raise ValueError(f"{name} must be an integer") from exc

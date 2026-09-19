@@ -233,6 +233,8 @@ Acceptance:
 
 ## PR 11 — Global search / Discover polish
 
+Status: implemented on `pr/11-discover-search`; final acceptance depends on CI.
+
 Goal:
 Make public knowledge and private home state easy to retrieve.
 
@@ -247,6 +249,8 @@ Acceptance:
 - public/private result groups visually distinct.
 
 ## PR 12 — Production hardening
+
+Status: implemented on `pr/12-production-hardening`; final acceptance depends on full CI.
 
 Scope:
 - PostgreSQL CI;

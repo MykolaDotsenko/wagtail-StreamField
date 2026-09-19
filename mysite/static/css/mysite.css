@@ -1710,6 +1710,130 @@
         margin-top: 0;
     }
 
+
+    .discover-search {
+        margin-bottom: var(--space-4);
+    }
+
+    .discover-filters {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-2);
+        margin-bottom: var(--space-4);
+    }
+
+    .filter-chip {
+        display: inline-flex;
+        min-height: 2.5rem;
+        align-items: center;
+        padding-inline: var(--space-4);
+        border: 1px solid var(--color-border);
+        border-radius: 999px;
+        background: var(--color-surface);
+        color: var(--color-text-muted);
+        font-size: var(--step--1);
+        font-weight: 720;
+        text-decoration: none;
+    }
+
+    .filter-chip:hover,
+    .filter-chip[aria-current="page"] {
+        border-color: var(--color-primary);
+        background: var(--color-primary-subtle);
+        color: var(--color-primary-hover);
+    }
+
+    .discover-summary {
+        display: flex;
+        align-items: baseline;
+        gap: var(--space-2);
+        color: var(--color-text-muted);
+        font-size: var(--step--1);
+    }
+
+    .discover-summary strong {
+        color: var(--color-text);
+        font-size: var(--step-1);
+    }
+
+    .discover-landing {
+        display: grid;
+        gap: var(--space-12);
+        margin-top: var(--space-10, 2.5rem);
+    }
+
+    .discover-group {
+        display: grid;
+        gap: var(--space-3);
+        margin-top: var(--space-10, 2.5rem);
+    }
+
+    .discover-group--private {
+        padding: var(--space-5, 1.25rem);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-xl);
+        background: var(--color-surface-subtle);
+    }
+
+    .discover-group__intro {
+        margin-top: calc(var(--space-3) * -1);
+        color: var(--color-text-muted);
+        font-size: var(--step--1);
+    }
+
+    .discover-results {
+        display: grid;
+        gap: var(--space-2);
+        list-style: none;
+    }
+
+    .discover-result {
+        min-width: 0;
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-lg);
+        background: var(--color-surface);
+    }
+
+    .discover-result--private {
+        border-color: var(--color-border-strong);
+    }
+
+    .discover-result__link {
+        display: flex;
+        min-height: 5.5rem;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-4);
+        padding: var(--space-4);
+        color: var(--color-text);
+        text-decoration: none;
+    }
+
+    .discover-result__link:hover {
+        background: var(--color-primary-subtle);
+        color: var(--color-text);
+    }
+
+    .discover-result__body {
+        display: grid;
+        min-width: 0;
+        gap: var(--space-2);
+    }
+
+    .discover-result__meta {
+        color: var(--color-text-muted);
+        font-size: var(--step--1);
+    }
+
+    .discover-result__title {
+        font-size: var(--step-1);
+    }
+
+    .discover-result__summary {
+        color: var(--color-text-muted);
+        overflow-wrap: anywhere;
+    }
+
     blockquote {
         margin: var(--space-6) 0;
         padding: var(--space-4) var(--space-6);
@@ -1788,6 +1912,15 @@
 
         .meal-week {
             grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .discover-landing {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            align-items: start;
+        }
+
+        .discover-landing .discover-group {
+            margin-top: 0;
         }
 
         .recipe-hero {

@@ -1,0 +1,19 @@
+<ul class="discover-results">
+    {% for result in results %}
+        <li class="discover-result">
+            <a class="discover-result__link" href="{{ result.href }}">
+                <span class="discover-result__body">
+                    <span class="cluster discover-result__meta">
+                        <span class="status-badge">{{ result.kind }}</span>
+                        <span>{{ result.meta }}</span>
+                    </span>
+                    <strong class="discover-result__title">{{ result.title }}</strong>
+                    {% if result.summary %}
+                        <span class="discover-result__summary">{{ result.summary }}</span>
+                    {% endif %}
+                </span>
+                <span class="item-row__arrow" aria-hidden="true">→</span>
+            </a>
+        </li>
+    {% endfor %}
+</ul>

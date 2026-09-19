@@ -402,3 +402,52 @@ Negative:
 - `docs/05_DOMAIN_MODEL.md`
 - ADR-003
 - ADR-008
+
+
+---
+
+## ADR-010 — Keep public and private search execution separate
+
+Status: Accepted
+Date: 2026-09-19
+
+### Context
+
+Discover must retrieve both published editorial knowledge and user-owned household state. A single combined index would be convenient but would materially increase the blast radius of an authorization/indexing mistake.
+
+### Decision
+
+Use two explicit search paths.
+
+Public Recipes and Guides use Wagtail indexed search on live Page querysets.
+
+Private Shopping, Pantry, Routines and MealPlanEntry search uses bounded Django QuerySets that begin with `user=request.user`. The private branch is not executed for anonymous users.
+
+Results are grouped and labelled separately in the UI.
+
+### Alternatives considered
+
+1. Put private household state into the same Wagtail/global search index as public content.
+2. Search all household rows and filter ownership after retrieval.
+3. Add Elasticsearch/OpenSearch before product scale requires it.
+4. Hide the private/public distinction in one flat result list.
+
+### Consequences
+
+Positive:
+- authorization is visible in code structure;
+- anonymous requests cannot retrieve private rows;
+- easier security testing;
+- public search can evolve independently from household search;
+- UI makes source/privacy boundaries understandable.
+
+Negative:
+- ranking is per-domain rather than one global relevance score;
+- private search is simpler substring matching at MVP scale;
+- a future dedicated private index would require its own tenant/ownership design.
+
+### References
+
+- `docs/04_ARCHITECTURE.md`
+- `docs/06_QUALITY_SECURITY_ACCESSIBILITY.md`
+- Wagtail 7.4 search/indexing documentation

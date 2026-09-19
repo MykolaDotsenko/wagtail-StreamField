@@ -17,7 +17,7 @@ jobs:
   quality:
     name: Python ${{ matrix.python-version }}
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 20
 
     strategy:
       fail-fast: false
@@ -65,7 +65,7 @@ jobs:
       - name: Run tests with branch coverage
         run: |
           coverage run manage.py test
-          coverage report
+          coverage report --fail-under=80
 
       - name: Check production deployment settings
         if: matrix.python-version == '3.13'
@@ -77,6 +77,128 @@ jobs:
           WAGTAILADMIN_BASE_URL: https://example.com
         run: python manage.py check --deploy
 
+      - name: Build production static assets
+        if: matrix.python-version == '3.13'
+        env:
+          DJANGO_SETTINGS_MODULE: mysite.settings.production
+          DJANGO_SECRET_KEY: ci-only-super-long-secret-key-with-sufficient-entropy-0123456789
+          DJANGO_ALLOWED_HOSTS: example.com
+          DJANGO_CSRF_TRUSTED_ORIGINS: https://example.com
+          WAGTAILADMIN_BASE_URL: https://example.com
+        run: python manage.py collectstatic --noinput --clear
+
       - name: Audit Python dependencies
         if: matrix.python-version == '3.13'
         run: pip-audit -r requirements.txt
+
+  postgres:
+    name: PostgreSQL integration
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      POSTGRES_DB: domonest_ci
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_HOST: 127.0.0.1
+      POSTGRES_PORT: "5432"
+      POSTGRES_CONN_MAX_AGE: "0"
+
+    services:
+      postgres:
+        image: postgres:17
+        env:
+          POSTGRES_DB: domonest_ci
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres -d domonest_ci"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements-dev.txt
+
+      - name: Run Django checks on PostgreSQL
+        run: python manage.py check
+
+      - name: Check migration drift on PostgreSQL
+        run: python manage.py makemigrations --check --dry-run
+
+      - name: Apply migrations on PostgreSQL
+        run: python manage.py migrate --noinput
+
+      - name: Run full test suite on PostgreSQL
+        run: python manage.py test
+
+  browser:
+    name: Chromium golden journey + axe
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+          cache: pip
+          cache-dependency-path: |
+            requirements.txt
+            requirements-dev.txt
+
+      - name: Set up Node
+        uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+
+      - name: Install Python dependencies
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements-dev.txt
+
+      - name: Install browser test dependencies
+        run: npm install --no-audit --no-fund
+
+      - name: Audit browser test dependencies
+        run: npm audit --audit-level=high
+
+      - name: Install Chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Run golden journey
+        run: npm run test:e2e
+
+      - name: Upload browser evidence
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: domonest-browser-evidence
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: ignore
+          retention-days: 14

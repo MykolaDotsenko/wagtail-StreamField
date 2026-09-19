@@ -3,7 +3,7 @@ import os
 from django.core.exceptions import ImproperlyConfigured
 
 from .base import *
-from .utils import env_bool, env_list
+from .utils import env_bool, env_int, env_list
 
 DEBUG = False
 
@@ -22,16 +22,21 @@ if not WAGTAILADMIN_BASE_URL:
     raise ImproperlyConfigured("WAGTAILADMIN_BASE_URL is required in production.")
 
 STORAGES["staticfiles"] = {
-    "BACKEND": "django.contrib.staticfiles.storage.ManifestStaticFilesStorage",
+    "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
 }
+
+MEDIA_ROOT = os.environ.get("DJANGO_MEDIA_ROOT", MEDIA_ROOT)
+WHITENOISE_KEEP_ONLY_HASHED_FILES = True
 
 SECURE_SSL_REDIRECT = True
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
-SECURE_HSTS_SECONDS = 3600
-SECURE_HSTS_INCLUDE_SUBDOMAINS = False
-SECURE_HSTS_PRELOAD = False
+SECURE_HSTS_SECONDS = env_int("DJANGO_SECURE_HSTS_SECONDS", default=3600)
+SECURE_HSTS_INCLUDE_SUBDOMAINS = env_bool("DJANGO_SECURE_HSTS_INCLUDE_SUBDOMAINS")
+SECURE_HSTS_PRELOAD = env_bool("DJANGO_SECURE_HSTS_PRELOAD")
 SECURE_CONTENT_TYPE_NOSNIFF = True
+SECURE_REFERRER_POLICY = "strict-origin-when-cross-origin"
+SESSION_COOKIE_HTTPONLY = True
 
 if env_bool("DJANGO_TRUST_X_FORWARDED_PROTO"):
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")

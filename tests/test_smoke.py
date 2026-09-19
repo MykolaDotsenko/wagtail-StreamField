@@ -19,7 +19,9 @@ class ApplicationSmokeTests(TestCase):
         self.assertContains(response, 'role="search"')
         self.assertContains(response, 'for="search-query"')
         self.assertContains(response, 'type="search"')
-        self.assertContains(response, "Start with a household question")
+        self.assertContains(response, "Find what helps at home")
+        self.assertContains(response, "Latest recipes")
+        self.assertContains(response, "Latest guides")
 
     def test_login_page_uses_deliberate_form_markup(self):
         response = self.client.get("/accounts/login/")
