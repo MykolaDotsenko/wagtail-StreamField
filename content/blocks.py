@@ -23,6 +23,7 @@ class TipBlock(blocks.StructBlock):
         group = "Guidance"
         template = "content/blocks/tip.html"
         description = "Helpful context or a practical shortcut."
+        preview_template = "content/blocks/preview.html"
         preview_value = {
             "title": "Practical tip",
             "body": "<p>Store similar items together so they are easier to notice and use.</p>",
@@ -46,6 +47,7 @@ class WarningBlock(blocks.StructBlock):
         group = "Guidance"
         template = "content/blocks/warning.html"
         description = "A restrained warning or important safety/context note."
+        preview_template = "content/blocks/preview.html"
         preview_value = {
             "title": "Take care",
             "body": "<p>Check the product label before combining household cleaning products.</p>",
@@ -73,6 +75,7 @@ class ChecklistBlock(blocks.StructBlock):
         group = "Actionable content"
         template = "content/blocks/checklist.html"
         description = "A scannable set of things to check or prepare."
+        preview_template = "content/blocks/preview.html"
         preview_value = {
             "title": "Before you start",
             "items": ["Open a window", "Gather supplies", "Clear the surface"],
@@ -100,6 +103,7 @@ class StepsBlock(blocks.StructBlock):
         group = "Actionable content"
         template = "content/blocks/steps.html"
         description = "An ordered procedure where sequence matters."
+        preview_template = "content/blocks/preview.html"
         preview_value = {
             "title": "How to do it",
             "steps": ["Prepare the area.", "Do the task.", "Put everything back."],
@@ -152,6 +156,7 @@ class ActionBlock(blocks.StructBlock):
         group = "Actionable content"
         template = "content/blocks/action.html"
         description = "A single useful next step connected to the guide."
+        preview_template = "content/blocks/preview.html"
         preview_value = {
             "heading": "Make this actionable",
             "text": "Connect the guide to a useful next step.",
