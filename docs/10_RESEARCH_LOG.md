@@ -303,6 +303,25 @@ PR5 implements Routine + RoutineEvent, stale-action checks under transaction loc
 
 ---
 
+## 2026-09-19 — What priority should Today use?
+
+Area: Product / UX
+Status: Validated in PR6
+Confidence: High
+
+### Finding
+
+Use deterministic, explainable urgency rather than a synthetic score:
+overdue routine → expired pantry → routine due today → use soon → low stock → shopping summary.
+
+Cap the visible action feed at six. One Pantry item emits only its strongest reason.
+
+### Product/engineering impact
+
+`today_snapshot()` composes existing owner-scoped selectors. No Today rows or scores are persisted.
+
+---
+
 ## Open research backlog
 
 These questions should be answered only when their PR approaches:
@@ -312,6 +331,6 @@ These questions should be answered only when their PR approaches:
 3. What is the clearest non-technical Wagtail authoring workflow for RecipePage ingredients?
 4. [Resolved PR5] Use a Routine cadence row + immutable RoutineEvent history; keep postponed_until separate from due_on and retain a monthly anchor day.
 5. Should shopping purchase history be retained indefinitely or summarized?
-6. What exact Today signal priority performs best once all modules exist?
+6. [Resolved PR6 baseline] Re-evaluate Today priority only after real meal-plan signals exist.
 7. What PostgreSQL/search strategy is justified at portfolio/demo scale?
 8. What performance budget should become CI-enforced after baseline measurements exist?
