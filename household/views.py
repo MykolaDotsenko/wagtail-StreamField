@@ -52,7 +52,6 @@ from .services import (
 )
 
 
-
 def _parse_iso_date(value, *, fallback):
     if not value:
         return fallback
