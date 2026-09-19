@@ -85,7 +85,6 @@ class BlogPage(Page):
     search_fields = Page.search_fields + [
         index.SearchField("intro", boost=1.5),
         index.SearchField("body"),
-        index.SearchField("get_guide_type_display"),
         index.FilterField("guide_type"),
     ]
 
