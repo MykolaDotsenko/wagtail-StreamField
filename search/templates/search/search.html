@@ -1,38 +1,11 @@
 {% extends "base.html" %}
-{% load static wagtailcore_tags %}
-
-{% block body_class %}template-searchresults{% endblock %}
-
+{% load wagtailcore_tags %}
 {% block title %}Search{% endblock %}
-
 {% block content %}
-<h1>Search</h1>
-
-<form action="{% url 'search' %}" method="get">
-    <input type="text" name="query"{% if search_query %} value="{{ search_query }}"{% endif %}>
-    <input type="submit" value="Search" class="button">
-</form>
-
-{% if search_results %}
-<ul>
-    {% for result in search_results %}
-    <li>
-        <h4><a href="{% pageurl result %}">{{ result }}</a></h4>
-        {% if result.search_description %}
-        {{ result.search_description }}
-        {% endif %}
-    </li>
-    {% endfor %}
-</ul>
-
-{% if search_results.has_previous %}
-<a href="{% url 'search' %}?query={{ search_query|urlencode }}&amp;page={{ search_results.previous_page_number }}">Previous</a>
-{% endif %}
-
-{% if search_results.has_next %}
-<a href="{% url 'search' %}?query={{ search_query|urlencode }}&amp;page={{ search_results.next_page_number }}">Next</a>
-{% endif %}
-{% elif search_query %}
-No results found
-{% endif %}
+<section class="page-hero page-hero-compact"><div class="shell"><p class="eyebrow">Find the useful thing</p><h1>Search DomoNest</h1><p class="lead">Recipes, practical guides and household ideas — without digging through menus.</p><form class="hero-search" action="{% url 'search' %}" method="get"><input type="search" name="query" value="{{ search_query|default:'' }}" placeholder="Try “freezer”, “quick dinner” or “bathroom”…" autofocus><button class="button" type="submit">Search</button></form></div></section>
+<section class="section section-tight"><div class="shell search-results">
+{% if search_results %}<p class="result-count">{{ search_results.paginator.count }} result{{ search_results.paginator.count|pluralize }} for “{{ search_query }}”</p>{% for result in search_results %}<article class="search-result"><div class="card-kicker">{{ result.specific.get_verbose_name|default:"Page" }}</div><h2><a href="{% pageurl result %}">{{ result }}</a></h2>{% if result.search_description %}<p>{{ result.search_description }}</p>{% endif %}<a class="text-link" href="{% pageurl result %}">Open →</a></article>{% endfor %}
+<nav class="pagination" aria-label="Search results">{% if search_results.has_previous %}<a class="button button-secondary button-small" href="?query={{ search_query|urlencode }}&page={{ search_results.previous_page_number }}">← Previous</a>{% endif %}<span>Page {{ search_results.number }} of {{ search_results.paginator.num_pages }}</span>{% if search_results.has_next %}<a class="button button-secondary button-small" href="?query={{ search_query|urlencode }}&page={{ search_results.next_page_number }}">Next →</a>{% endif %}</nav>
+{% elif search_query %}<div class="empty-state"><span aria-hidden="true">⌕</span><h2>Nothing matched that phrase.</h2><p>Try fewer words or browse recipes and guides instead.</p></div>{% else %}<div class="empty-state"><span aria-hidden="true">⌕</span><h2>What would make home easier today?</h2><p>Start with an ingredient, room, routine or problem.</p></div>{% endif %}
+</div></section>
 {% endblock %}

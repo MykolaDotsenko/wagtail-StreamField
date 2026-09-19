@@ -1,21 +1,2 @@
-{% extends "base.html" %}
-{% load wagtailcore_tags %}
-
-{% block content %}
-
-    {% if request.GET.tag %}
-        <h4>Showing pages tagged "{{ request.GET.tag }}"</h4>
-    {% endif %}
-
-    {% for blogpage in blogpages %}
-
-          <p>
-              <strong><a href="{% pageurl blogpage %}">{{ blogpage.title }}</a></strong><br />
-              <small>Revised: {{ blogpage.latest_revision_created_at }}</small><br />
-          </p>
-
-    {% empty %}
-        No pages found with that tag.
-    {% endfor %}
-
-{% endblock %}
+{% extends "base.html" %}{% load wagtailcore_tags %}
+{% block content %}<section class="page-hero page-hero-compact"><div class="shell"><a class="back-link" href="/guides/">← Guides</a><p class="eyebrow">Tagged collection</p><h1>{% if request.GET.tag %}#{{ request.GET.tag }}{% else %}Choose a tag{% endif %}</h1></div></section><section class="section section-tight"><div class="shell content-grid">{% for blogpage in blogpages %}<a class="content-card" href="{% pageurl blogpage %}"><div class="card-kicker">{{ blogpage.specific.reading_minutes }} min read</div><h2>{{ blogpage.title }}</h2><p>{{ blogpage.specific.intro }}</p><span>Read guide →</span></a>{% empty %}<div class="empty-state"><h2>No guides found.</h2><p>Try another tag from the guide library.</p></div>{% endfor %}</div></section>{% endblock %}

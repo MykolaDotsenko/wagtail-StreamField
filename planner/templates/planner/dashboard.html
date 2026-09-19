@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+{% block title %}My household planner{% endblock %}
+{% block body_class %}template-planner{% endblock %}
+{% block content %}
+<section class="planner-hero">
+    <div class="shell planner-heading">
+        <div><p class="eyebrow">Your home, at a glance</p><h1>Good morning, {{ request.user.username }}.</h1><p class="lead">Four small systems. One calmer household.</p></div>
+        <a class="button button-secondary" href="/recipes/">Find dinner inspiration</a>
+    </div>
+</section>
+
+<section class="section section-tight"><div class="shell">
+    <div class="stats-grid" aria-label="Household overview">
+        <article><span>🛒</span><div><strong>{{ stats.shopping_open }}</strong><small>shopping items left</small></div></article>
+        <article><span>🧹</span><div><strong>{{ stats.chores_open }}</strong><small>open home tasks</small></div></article>
+        <article><span>🥫</span><div><strong>{{ stats.pantry_attention }}</strong><small>pantry items to check</small></div></article>
+        <article><span>🍽️</span><div><strong>{{ stats.meals_planned }}</strong><small>meals planned this week</small></div></article>
+    </div>
+
+    <div class="planner-grid">
+        <section class="planner-card planner-card-wide" aria-labelledby="meal-heading">
+            <div class="planner-card-head"><div><p class="eyebrow">7-day rhythm</p><h2 id="meal-heading">Meal plan</h2></div><details class="quick-add"><summary class="button button-small">Plan a meal</summary><form method="post" class="inline-form">{% csrf_token %}<input type="hidden" name="action" value="meal">{{ forms.meal.as_div }}<button class="button button-small" type="submit">Save meal</button></form></details></div>
+            {% if forms.meal.non_field_errors %}<div class="form-errors">{{ forms.meal.non_field_errors }}</div>{% endif %}
+            <div class="week-strip">
+            {% for day in week %}
+                <article class="day-card"><time datetime="{{ day.date|date:'Y-m-d' }}"><strong>{{ day.date|date:"D" }}</strong><span>{{ day.date|date:"j M" }}</span></time>
+                    <div class="day-meals">{% for entry in day.entries %}<div class="meal-line"><span>{{ entry.get_meal_type_display }}</span><strong>{{ entry.label }}</strong><form method="post" action="{% url 'planner:delete_item' 'meal' entry.pk %}">{% csrf_token %}<button class="icon-button" type="submit" aria-label="Remove {{ entry.label }}">×</button></form></div>{% empty %}<p class="muted">Nothing planned yet.</p>{% endfor %}</div>
+                </article>
+            {% endfor %}
+            </div>
+        </section>
+
+        <section class="planner-card" aria-labelledby="shopping-heading">
+            <div class="planner-card-head"><div><p class="eyebrow">Grab & go</p><h2 id="shopping-heading">Shopping</h2></div><details class="quick-add"><summary class="icon-button" aria-label="Add shopping item">+</summary><form method="post" class="inline-form">{% csrf_token %}<input type="hidden" name="action" value="shopping">{{ forms.shopping.as_div }}<button class="button button-small" type="submit">Add item</button></form></details></div>
+            <div class="task-list">{% for item in shopping_items %}<div class="task-row {% if item.is_done %}is-done{% endif %}"><form method="post" action="{% url 'planner:toggle_item' 'shopping' item.pk %}">{% csrf_token %}<button class="check-button" type="submit" aria-label="{% if item.is_done %}Mark {{ item.name }} not bought{% else %}Mark {{ item.name }} bought{% endif %}">{% if item.is_done %}✓{% endif %}</button></form><div class="task-copy"><strong>{{ item.name }}</strong><small>{{ item.quantity }} · {{ item.get_category_display }}</small></div><form method="post" action="{% url 'planner:delete_item' 'shopping' item.pk %}">{% csrf_token %}<button class="icon-button" type="submit" aria-label="Delete {{ item.name }}">×</button></form></div>{% empty %}<div class="mini-empty"><span>🛒</span><p>Your list is clear.</p></div>{% endfor %}</div>
+        </section>
+
+        <section class="planner-card" aria-labelledby="pantry-heading">
+            <div class="planner-card-head"><div><p class="eyebrow">Waste less</p><h2 id="pantry-heading">Pantry</h2></div><details class="quick-add"><summary class="icon-button" aria-label="Add pantry item">+</summary><form method="post" class="inline-form">{% csrf_token %}<input type="hidden" name="action" value="pantry">{{ forms.pantry.as_div }}<button class="button button-small" type="submit">Add pantry item</button></form></details></div>
+            <div class="task-list">{% for item in pantry_items %}<div class="task-row"><span class="attention-dot {% if item.needs_attention %}attention{% endif %}" aria-hidden="true"></span><div class="task-copy"><strong>{{ item.name }}</strong><small>{{ item.quantity }} · {{ item.get_category_display }}{% if item.expires_on %} · use by {{ item.expires_on|date:"j M" }}{% endif %}{% if item.low_stock %} · low stock{% endif %}</small></div><form method="post" action="{% url 'planner:delete_item' 'pantry' item.pk %}">{% csrf_token %}<button class="icon-button" type="submit" aria-label="Delete {{ item.name }}">×</button></form></div>{% empty %}<div class="mini-empty"><span>🥫</span><p>Add what you already have at home.</p></div>{% endfor %}</div>
+        </section>
+
+        <section class="planner-card planner-card-wide" aria-labelledby="chore-heading">
+            <div class="planner-card-head"><div><p class="eyebrow">Small resets</p><h2 id="chore-heading">Home routines</h2></div><details class="quick-add"><summary class="button button-small">Add a routine</summary><form method="post" class="inline-form inline-form-grid">{% csrf_token %}<input type="hidden" name="action" value="chore">{{ forms.chore.as_div }}<button class="button button-small" type="submit">Add routine</button></form></details></div>
+            <div class="chore-grid">{% for chore in chores %}<article class="chore-card {% if chore.is_done %}is-done{% endif %}"><div><span class="room-chip">{{ chore.get_room_display }}</span><h3>{{ chore.title }}</h3><p>{{ chore.get_frequency_display }} · due {{ chore.due_on|date:"D, j M" }}</p></div><div class="row-actions"><form method="post" action="{% url 'planner:toggle_item' 'chore' chore.pk %}">{% csrf_token %}<button class="button button-small button-secondary" type="submit">{% if chore.is_done %}Reopen{% else %}Done{% endif %}</button></form><form method="post" action="{% url 'planner:delete_item' 'chore' chore.pk %}">{% csrf_token %}<button class="icon-button" type="submit" aria-label="Delete {{ chore.title }}">×</button></form></div></article>{% empty %}<div class="mini-empty"><span>🧺</span><p>No chores queued. Enjoy the breathing room.</p></div>{% endfor %}</div>
+        </section>
+    </div>
+</div></section>
+{% endblock %}

@@ -1,0 +1,3 @@
+{% extends "base.html" %}
+{% block title %}Create your household space{% endblock %}
+{% block content %}<section class="auth-shell"><div class="auth-card"><p class="eyebrow">A fresh start</p><h1>Create your household space.</h1><p>No marketing profile, no social feed — just a private place for everyday planning.</p><form method="post" class="auth-form">{% csrf_token %}{{ form.as_div }}<button class="button" type="submit">Create space</button></form><p class="auth-foot">Already have one? <a href="{% url 'login' %}">Log in</a>.</p></div></section>{% endblock %}
