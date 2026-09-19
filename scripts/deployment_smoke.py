@@ -41,9 +41,7 @@ def require_security_headers(headers: object) -> None:
     for name, expected_value in expected.items():
         actual = headers.get(name, "")
         if expected_value.lower() not in actual.lower():
-            raise SmokeFailure(
-                f"Expected {name} to contain {expected_value!r}, got {actual!r}."
-            )
+            raise SmokeFailure(f"Expected {name} to contain {expected_value!r}, got {actual!r}.")
 
     if not headers.get("strict-transport-security"):
         raise SmokeFailure("Missing Strict-Transport-Security header.")
@@ -51,10 +49,7 @@ def require_security_headers(headers: object) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "base_url",
-        help="Deployment root, e.g. https://domonest.onrender.com",
-    )
+    parser.add_argument("base_url", help="Deployment root, e.g. https://domonest.onrender.com")
     parser.add_argument("--timeout", type=float, default=15.0)
     args = parser.parse_args()
 
