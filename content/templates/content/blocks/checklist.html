@@ -1,0 +1,8 @@
+<section class="guide-checklist"{% if not value.title %} aria-label="Checklist"{% endif %}>
+    {% if value.title %}<h2>{{ value.title }}</h2>{% endif %}
+    <ul class="guide-checklist__items">
+        {% for item in value.items %}
+            <li><span class="guide-checklist__mark" aria-hidden="true">✓</span><span>{{ item }}</span></li>
+        {% endfor %}
+    </ul>
+</section>

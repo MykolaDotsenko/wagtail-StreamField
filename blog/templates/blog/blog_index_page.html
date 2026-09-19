@@ -13,7 +13,7 @@
 </section>
 
 {% if blogpages %}
-    <ul class="item-list" aria-label="Knowledge articles">
+    <ul class="item-list" aria-label="Home guides">
         {% for post in blogpages %}
             {% with post=post.specific %}
                 <li class="item-row item-row--link">
@@ -26,7 +26,10 @@
                     {% endwith %}
                     <span class="item-row__body">
                         <a class="item-row__title" href="{% pageurl post %}">{{ post.title }}</a>
-                        {% if post.intro %}<span>{{ post.intro }}</span>{% endif %}
+                        <span class="cluster guide-list-meta">
+                            <span class="status-badge status-badge--calm">{{ post.get_guide_type_display }}</span>
+                            {% if post.intro %}<span>{{ post.intro }}</span>{% endif %}
+                        </span>
                     </span>
                     <span class="item-row__arrow" aria-hidden="true">→</span>
                 </li>

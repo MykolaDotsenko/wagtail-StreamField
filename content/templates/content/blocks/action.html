@@ -1,0 +1,11 @@
+<aside class="guide-action">
+    <div>
+        <strong class="guide-action__title">{{ value.heading }}</strong>
+        {% if value.text %}<p>{{ value.text }}</p>{% endif %}
+    </div>
+    {% if value.page %}
+        <a class="button button--primary" href="{{ value.page.url }}">{{ value.label }}</a>
+    {% elif value.url %}
+        <a class="button button--primary" href="{{ value.url }}">{{ value.label }}</a>
+    {% endif %}
+</aside>

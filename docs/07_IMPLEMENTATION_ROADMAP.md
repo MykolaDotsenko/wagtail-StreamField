@@ -149,6 +149,8 @@ Acceptance:
 
 ## PR 7 — Wagtail content architecture
 
+Status: implemented on `pr/07-wagtail-content-architecture`; final acceptance depends on CI.
+
 Goal:
 Turn the CMS into a deliberate authoring system.
 

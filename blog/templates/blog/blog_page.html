@@ -10,6 +10,7 @@
         <h1>{{ page.title }}</h1>
 
         <div class="content-meta">
+            <span class="status-badge status-badge--calm">{{ page.get_guide_type_display }}</span>
             <time datetime="{{ page.date|date:'Y-m-d' }}">{{ page.date|date:"F j, Y" }}</time>
         </div>
 
@@ -66,7 +67,7 @@
     {% endwith %}
 
     <div class="prose-section">
-        <a class="button button--secondary" href="{{ page.get_parent.url }}">Back to knowledge</a>
+        <a class="button button--secondary" href="{{ page.get_parent.url }}">Back to guides</a>
     </div>
 </article>
 {% endblock %}

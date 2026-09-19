@@ -1278,6 +1278,116 @@
         border-radius: var(--radius-lg);
     }
 
+    .guide-callout {
+        display: grid;
+        gap: var(--space-2);
+        margin-block: var(--space-6);
+        padding: var(--space-4) var(--space-6);
+        border: 1px solid var(--color-border);
+        border-inline-start-width: 0.25rem;
+        border-radius: var(--radius-md);
+        background: var(--color-surface);
+    }
+
+    .guide-callout--tip {
+        border-inline-start-color: var(--color-primary);
+        background: var(--color-primary-subtle);
+    }
+
+    .guide-callout--warning {
+        border-inline-start-color: var(--color-attention);
+        background: var(--color-attention-subtle);
+    }
+
+    .guide-callout__title,
+    .guide-action__title {
+        font-size: var(--step-1);
+        font-weight: 760;
+    }
+
+    .guide-callout__body {
+        display: grid;
+        gap: var(--space-2);
+    }
+
+    .guide-checklist,
+    .guide-steps {
+        display: grid;
+        gap: var(--space-4);
+        margin-block: var(--space-6);
+    }
+
+    .guide-checklist__items,
+    .guide-steps__items {
+        display: grid;
+        gap: var(--space-3);
+        list-style: none;
+    }
+
+    .guide-checklist__items li {
+        display: grid;
+        grid-template-columns: 1.75rem minmax(0, 1fr);
+        gap: var(--space-3);
+        align-items: start;
+    }
+
+    .guide-checklist__mark {
+        display: grid;
+        width: 1.75rem;
+        height: 1.75rem;
+        place-items: center;
+        border-radius: 50%;
+        background: var(--color-primary-subtle);
+        color: var(--color-primary);
+        font-weight: 800;
+    }
+
+    .guide-steps__items {
+        counter-reset: guide-step;
+    }
+
+    .guide-steps__items li {
+        display: grid;
+        grid-template-columns: 2rem minmax(0, 1fr);
+        gap: var(--space-3);
+        align-items: start;
+        counter-increment: guide-step;
+    }
+
+    .guide-steps__items li::before {
+        display: grid;
+        width: 2rem;
+        height: 2rem;
+        place-items: center;
+        border-radius: 50%;
+        background: var(--color-surface-subtle);
+        color: var(--color-text);
+        content: counter(guide-step);
+        font-weight: 800;
+    }
+
+    .guide-action {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-4);
+        margin-block: var(--space-8);
+        padding: var(--space-6);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-lg);
+        background: var(--color-surface-subtle);
+    }
+
+    .guide-action > div {
+        display: grid;
+        gap: var(--space-2);
+    }
+
+    .guide-list-meta {
+        gap: var(--space-2);
+    }
+
     blockquote {
         margin: var(--space-6) 0;
         padding: var(--space-4) var(--space-6);
