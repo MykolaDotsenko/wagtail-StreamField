@@ -242,3 +242,52 @@ Negative:
 - `docs/02_UX_RESEARCH_AND_FLOWS.md`
 - `docs/05_DOMAIN_MODEL.md`
 - `docs/04_ARCHITECTURE.md`
+
+
+---
+
+## ADR-007 — Keep recipe ingredients relational and machine-readable
+
+Status: Accepted
+Date: 2026-09-19
+
+### Context
+
+PR9 must compare recipe requirements with private Pantry state and create missing Shopping demand. Ingredient prose inside StreamField would require text parsing, fuzzy matching or editor conventions that are difficult to validate.
+
+### Decision
+
+Use a canonical `Ingredient` Wagtail snippet plus ordered `RecipeIngredient` inline rows attached to RecipePage with `ParentalKey`.
+
+RecipeIngredient stores amount, unit, note and optional state. Recipe instructions remain a curated StreamField because cooking narrative benefits from editorial flexibility.
+
+For MVP, a canonical Ingredient can occur only once per recipe. Multi-stage use is represented with a note such as "divided".
+
+### Alternatives considered
+
+1. Store all ingredients as free-form text inside StreamField.
+2. Use a StructBlock ingredient list inside StreamField.
+3. Allow duplicate canonical ingredients and aggregate later.
+4. Build a full food/nutrition ontology before recipe delivery.
+
+### Consequences
+
+Positive:
+- PR9 gets deterministic relational input;
+- editor experience remains native Wagtail via InlinePanel;
+- ingredient names become directly searchable;
+- no natural-language parsing is required;
+- unit uncertainty can be handled explicitly.
+
+Negative:
+- one-ingredient-per-recipe is a deliberate MVP constraint;
+- additional unit conversion logic is deferred to reconciliation;
+- canonical Ingredient maintenance becomes an editorial responsibility.
+
+### References
+
+- `docs/04_ARCHITECTURE.md`
+- `docs/05_DOMAIN_MODEL.md`
+- Wagtail Page inline models / ParentalKey documentation
+- Wagtail snippets documentation
+- Wagtail search indexing documentation
