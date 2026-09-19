@@ -171,6 +171,8 @@ Acceptance:
 
 ## PR 8 — Recipe domain + RecipePage
 
+Status: implemented on `pr/08-recipe-domain-page`; final acceptance depends on CI.
+
 Goal:
 Create structured recipe content ready for household actions.
 
