@@ -1,0 +1,5 @@
+{% load wagtailcore_tags %}
+<aside class="guide-callout guide-callout--warning">
+    <strong class="guide-callout__title">{{ value.title|default:"Take care" }}</strong>
+    <div class="guide-callout__body">{{ value.body|richtext }}</div>
+</aside>
