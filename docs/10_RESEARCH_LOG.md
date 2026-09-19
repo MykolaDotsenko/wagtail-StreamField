@@ -416,6 +416,57 @@ PR9 creates one deterministic readiness contract reusable by RecipePage and late
 
 ---
 
+## 2026-09-19 — What should a dinner plan persist?
+
+Area: Product / Domain / Architecture
+Status: Validated in PR10
+Confidence: High
+
+### Question
+
+Should MealPlanEntry persist recipe readiness, only a RecipePage FK, or a more durable representation of the household decision?
+
+### Evidence
+
+Recipe readiness depends on private Pantry state and the evaluation date, so it changes independently of the meal plan. Public editorial recipes may also be unpublished or deleted while a user's private plan should remain understandable.
+
+### Finding
+
+Persist only stable household intent: user, date, a durable dinner-name snapshot, and an optional RecipePage link.
+
+Recompute recipe readiness from PR9 at read time. For weekly plans, evaluate Pantry expiry against the planned dinner date.
+
+### Product/engineering impact
+
+- one dinner per user/date;
+- same-date saves are upserts;
+- RecipePage deletion cannot erase the private dinner name;
+- no persisted readiness/missing-count columns;
+- PR12 should measure the query cost of recipe option/readiness composition before adding caching.
+
+---
+
+## 2026-09-19 — How should recipes be ordered in the Plan selector?
+
+Area: UX / Product
+Status: Validated in PR10
+Confidence: Medium
+
+### Question
+
+Can the recipe picker help decision-making without claiming personalization or AI?
+
+### Finding
+
+Use deterministic operational readiness:
+Pantry-ready → known Shopping shortages → uncertain stock → incomplete ingredient data, then shortage count, uncertainty count, total time and title.
+
+### Product/engineering impact
+
+The UI may explain these labels, but must not call the ordering "recommended", "smart", or personalized. User-relevant tags are deferred until actual preference data exists.
+
+---
+
 ## Open research backlog
 
 These questions should be answered only when their PR approaches:
@@ -425,6 +476,6 @@ These questions should be answered only when their PR approaches:
 3. [Resolved PR8] Ingredient snippet + ordered InlinePanel rows; narrative remains StreamField.
 4. [Resolved PR5] Use a Routine cadence row + immutable RoutineEvent history; keep postponed_until separate from due_on and retain a monthly anchor day.
 5. Should shopping purchase history be retained indefinitely or summarized?
-6. [Resolved PR6 baseline] Re-evaluate Today priority only after real meal-plan signals exist.
+6. [Resolved PR10] Today adds unresolved dinner/readiness before the Shopping summary; resolved dinner remains calm context.
 7. What PostgreSQL/search strategy is justified at portfolio/demo scale?
 8. What performance budget should become CI-enforced after baseline measurements exist?
