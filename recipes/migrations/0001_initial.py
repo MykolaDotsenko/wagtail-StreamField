@@ -244,7 +244,10 @@ class Migration(migrations.Migration):
                     models.CheckConstraint(
                         condition=(
                             models.Q(amount__isnull=True, unit="")
-                            | (models.Q(amount__gt=0) & ~models.Q(unit=""))
+                            | (
+                                models.Q(amount__isnull=False, amount__gt=0)
+                                & ~models.Q(unit="")
+                            )
                         ),
                         name="recipe_ingredient_quantity_consistent",
                     ),
