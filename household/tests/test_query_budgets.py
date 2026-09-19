@@ -9,7 +9,7 @@ from django.utils import timezone
 
 from home.models import HomePage
 from household.models import MealPlanEntry, PantryItem
-from household.selectors import meal_plan_week, meal_recipe_options, today_snapshot
+from household.selectors import meal_plan_week, meal_recipe_options, today_snapshot, week_start
 from recipes.models import Ingredient, RecipeIndexPage, RecipeIngredient, RecipePage
 
 
@@ -77,11 +77,12 @@ class HouseholdQueryBudgetTests(TestCase):
         )
 
     def test_weekly_plan_query_count_does_not_scale_per_planned_recipe(self):
+        start = week_start(self.today)
         for offset in range(7):
             recipe = self.create_recipe(offset)
             MealPlanEntry.objects.create(
                 user=self.user,
-                date=self.today + timedelta(days=offset),
+                date=start + timedelta(days=offset),
                 recipe=recipe,
                 name=recipe.title,
             )
@@ -89,7 +90,7 @@ class HouseholdQueryBudgetTests(TestCase):
         with CaptureQueriesContext(connection) as queries:
             week = meal_plan_week(
                 user=self.user,
-                anchor=self.today,
+                anchor=start,
                 today=self.today,
             )
             self.assertEqual(
