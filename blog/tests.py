@@ -1,9 +1,9 @@
-from django.test import SimpleTestCase
+from django.test import TestCase
 
 from .models import RecipePage
 
 
-class RecipePageTests(SimpleTestCase):
+class RecipePageTests(TestCase):
     def test_total_minutes_combines_prep_and_cook_time(self):
         page = RecipePage(
             title="Weeknight soup",
