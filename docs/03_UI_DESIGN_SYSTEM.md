@@ -310,3 +310,32 @@ Editor principles:
 10. Does every card exist for a semantic reason?
 11. Are labels and microcopy user-oriented rather than model-oriented?
 12. Can visual polish be removed without harming the workflow? If yes, ensure it is lightweight.
+
+
+## PR2 implementation contract
+
+The first production UI primitives are implemented in `mysite/static/css/mysite.css` using cascade layers and semantic design tokens.
+
+Stable primitives:
+- `.shell` — constrained responsive workspace;
+- `.button` with primary/secondary/ghost variants;
+- `.field`, `.field__label`, `.field__control`, `.field__error`;
+- `.item-list` / `.item-row`;
+- `.status-badge`;
+- `.attention-card`;
+- `.empty-state`;
+- `.snackbar`;
+- `.surface-panel`;
+- `.page-heading`, `.eyebrow`, `.lede`;
+- desktop and mobile navigation shells.
+
+Implementation rules:
+- system fonts only; no font-request dependency;
+- no JavaScript required for baseline navigation/layout;
+- only real destinations appear in navigation;
+- mobile primary navigation targets meet the internal 44px target;
+- semantic state names are used in markup instead of color names;
+- new product modules extend these primitives before creating one-off component styles;
+- link-row click expansion is scoped only to `.item-row--link`, preserving future nested controls in transactional rows.
+
+The current navigation intentionally exposes only Today, Discover and authentication/content destinations. Plan, Shopping, Pantry, Routines and Quick Add must be introduced when their routes/workflows exist, not as dead links.
