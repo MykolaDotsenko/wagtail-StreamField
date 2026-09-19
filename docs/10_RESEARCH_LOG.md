@@ -154,8 +154,8 @@ Server-rendered HTML is the baseline. Any HTMX or client-state dependency requir
 ## 2026-09-19 — Pantry precision versus maintenance cost
 
 Area: UX
-Status: Needs implementation validation
-Confidence: Medium
+Status: Validated in PR4
+Confidence: High
 
 ### Question
 
@@ -171,7 +171,7 @@ Support both precise and approximate quantities. The reconciliation layer must e
 
 ### Product/engineering impact
 
-Domain model plans `PRECISE` and `APPROXIMATE` modes. Usability should be re-evaluated after the pantry vertical slice.
+PR4 implements both modes. Approximate/Full is the name-only default; precise tracking is opt-in. Unknown expiry remains explicit. Recipe reconciliation must preserve uncertainty rather than invent sufficiency from approximate stock.
 
 ---
 
@@ -252,6 +252,30 @@ Use server-side soft delete plus a POST restore action. A query-string ID is a p
 ### Product/engineering impact
 
 The view never trusts the ID by itself. Both display and restore operations scope by authenticated user. A restore collision merges into the newer equivalent open item.
+
+---
+
+## 2026-09-19 — Should Pantry → Shopping increment quantity on repeated clicks?
+
+Area: Domain / UX
+Status: Validated
+Confidence: High
+
+### Question
+
+Should repeated "Add to Shopping" actions behave like repeated manual Quick Add?
+
+### Evidence
+
+Manual Quick Add represents explicit repeated demand and can reasonably increase quantity. Pantry low-stock action represents one unresolved replenishment intent; repeated submission can happen through double-click, refresh or retry.
+
+### Finding
+
+Pantry → Shopping must be idempotent. It ensures one equivalent active ShoppingItem exists without increasing quantity when it already exists.
+
+### Product/engineering impact
+
+PR4 introduces `ensure_shopping_item()` as a stable idempotent command boundary. PR9 Recipe → Shopping should reuse this semantic instead of manual Quick Add.
 
 ---
 

@@ -10,6 +10,7 @@
 
             {% if request.user.is_authenticated %}
                 <a class="nav-link"{% if request.resolver_match.namespace == "household" and request.resolver_match.url_name == "shopping" %} aria-current="page"{% endif %} href="{% url 'household:shopping' %}">Shopping</a>
+                <a class="nav-link"{% if request.resolver_match.namespace == "household" and request.resolver_match.url_name == "pantry" %} aria-current="page"{% endif %} href="{% url 'household:pantry' %}">Pantry</a>
             {% endif %}
 
             <a class="nav-link"{% if request.resolver_match.url_name == "search" %} aria-current="page"{% endif %} href="{% url 'search' %}">Discover</a>
