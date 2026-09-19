@@ -138,6 +138,40 @@ def add_shopping_item(*, user, name: str, quantity: int = 1, category: str = AUT
 
 
 @transaction.atomic
+def ensure_shopping_item(
+    *,
+    user,
+    name: str,
+    category: str = AUTO_CATEGORY,
+) -> AddShoppingResult:
+    display_name = ShoppingItem.normalize_display_name(name)
+    normalized_name = ShoppingItem.normalize_identity(display_name)
+    resolved_category = resolve_category(display_name, category)
+
+    item, created = ShoppingItem.objects.get_or_create(
+        user=user,
+        normalized_name=normalized_name,
+        status=ShoppingItem.Status.OPEN,
+        deleted_at=None,
+        defaults={
+            "name": display_name,
+            "quantity": 1,
+            "category": resolved_category,
+        },
+    )
+
+    if (
+        not created
+        and item.category == ShoppingItem.Category.OTHER
+        and resolved_category != ShoppingItem.Category.OTHER
+    ):
+        item.category = resolved_category
+        item.save(update_fields=["category", "name", "normalized_name", "updated_at"])
+
+    return AddShoppingResult(item=item, created=created)
+
+
+@transaction.atomic
 def toggle_shopping_item(*, user, item_id: int) -> MutationResult:
     item = ShoppingItem.objects.select_for_update().get(
         pk=item_id,
@@ -298,9 +332,8 @@ def delete_pantry_item(*, user, item_id: int) -> PantryItem:
 @transaction.atomic
 def add_pantry_item_to_shopping(*, user, item_id: int) -> AddShoppingResult:
     item = PantryItem.objects.select_for_update().get(pk=item_id, user=user)
-    return add_shopping_item(
+    return ensure_shopping_item(
         user=user,
         name=item.name,
-        quantity=1,
         category=item.category,
     )
