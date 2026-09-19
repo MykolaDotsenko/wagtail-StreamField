@@ -1,3 +1,4 @@
+from datetime import date, timedelta
 from urllib.parse import urlencode
 
 from django.contrib import messages
@@ -12,16 +13,19 @@ from django.views.decorators.http import require_POST
 from recipes.models import RecipePage
 
 from .forms import (
+    MealPlanForm,
     PantryItemForm,
     RoutineActionForm,
     RoutineForm,
     RoutinePostponeForm,
     ShoppingItemCreateForm,
 )
-from .models import PantryItem, Routine, ShoppingItem
+from .models import MealPlanEntry, PantryItem, Routine, ShoppingItem
 from .recipe_reconciliation import add_needed_recipe_ingredients
 from .selectors import (
     deleted_shopping_item_for_undo,
+    meal_plan_week,
+    meal_recipe_options,
     pantry_snapshot,
     routine_snapshot,
     shopping_snapshot,
@@ -35,15 +39,90 @@ from .services import (
     complete_routine,
     create_pantry_item,
     create_routine,
+    delete_dinner,
     delete_pantry_item,
     delete_shopping_item,
     postpone_routine,
     restore_shopping_item,
+    set_dinner,
     skip_routine,
     toggle_shopping_item,
     update_pantry_item,
     update_routine,
 )
+
+
+def _parse_iso_date(value, *, fallback):
+    if not value:
+        return fallback
+    try:
+        return date.fromisoformat(value)
+    except (TypeError, ValueError):
+        return fallback
+
+
+def _plan_url(*, anchor):
+    return f"{reverse('household:plan')}?{urlencode({'week': anchor.isoformat()})}"
+
+
+@login_required
+def plan(request):
+    today_date = timezone.localdate()
+    anchor = _parse_iso_date(request.GET.get("week"), fallback=today_date)
+    week = meal_plan_week(user=request.user, anchor=anchor, today=today_date)
+    recipe_options = meal_recipe_options(user=request.user, today=today_date)
+
+    initial_date = _parse_iso_date(request.GET.get("date"), fallback=today_date)
+    if initial_date < today_date:
+        initial_date = today_date
+
+    initial = {"date": initial_date}
+    requested_recipe = request.GET.get("recipe")
+    valid_recipe_ids = {str(option.recipe.pk) for option in recipe_options}
+    if requested_recipe in valid_recipe_ids:
+        initial["recipe"] = requested_recipe
+
+    form = MealPlanForm(
+        request.POST or None,
+        recipe_options=recipe_options,
+        today=today_date,
+        initial=initial,
+    )
+
+    if request.method == "POST" and form.is_valid():
+        entry = set_dinner(
+            user=request.user,
+            dinner_date=form.cleaned_data["date"],
+            recipe=form.cleaned_data["recipe_obj"],
+            custom_name=form.cleaned_data["meal_name"],
+        )
+        messages.success(request, f"Dinner planned for {entry.date:%a, %b %d}: {entry.name}.")
+        return redirect(_plan_url(anchor=entry.date - timedelta(days=entry.date.weekday())))
+
+    return render(
+        request,
+        "household/plan.html",
+        {
+            "form": form,
+            "week": week,
+            "previous_week": week.start - timedelta(days=7),
+            "next_week": week.start + timedelta(days=7),
+            "today": today_date,
+        },
+    )
+
+
+@login_required
+@require_POST
+def remove_dinner(request, entry_id):
+    try:
+        entry = delete_dinner(user=request.user, entry_id=entry_id)
+    except MealPlanEntry.DoesNotExist as exc:
+        raise Http404 from exc
+
+    anchor = entry.date - timedelta(days=entry.date.weekday())
+    messages.success(request, f"{entry.name} removed from the dinner plan.")
+    return redirect(_plan_url(anchor=anchor))
 
 
 @login_required

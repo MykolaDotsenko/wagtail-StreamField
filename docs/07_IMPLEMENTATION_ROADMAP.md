@@ -213,6 +213,8 @@ Acceptance:
 
 ## PR 10 — Meal planning
 
+Status: implemented on `pr/10-meal-planning`; final acceptance depends on CI.
+
 Goal:
 Plan dinners and connect them to recipe readiness.
 

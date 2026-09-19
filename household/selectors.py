@@ -1,10 +1,13 @@
 from collections import defaultdict
 from dataclasses import dataclass
-from datetime import date
+from datetime import date, timedelta
 
 from django.utils import timezone
 
-from .models import PantryItem, Routine, ShoppingItem
+from recipes.models import RecipePage
+
+from .models import MealPlanEntry, PantryItem, Routine, ShoppingItem
+from .recipe_reconciliation import recipe_readiness
 
 
 @dataclass(frozen=True)
@@ -195,6 +198,125 @@ def routine_snapshot(*, user, today=None) -> RoutineSnapshot:
 
 
 @dataclass(frozen=True)
+class MealRecipeOption:
+    recipe: RecipePage
+    readiness: object
+
+    @property
+    def selection_label(self) -> str:
+        parts = [f"{self.recipe.title} — {self.recipe.total_minutes} min"]
+        if not self.readiness.items:
+            parts.append("ingredient data incomplete")
+        else:
+            if self.readiness.needed_count:
+                count = self.readiness.needed_count
+                parts.append(
+                    f"{count} item{'s' if count != 1 else ''} need{'s' if count == 1 else ''} Shopping"
+                )
+            if self.readiness.unknown_count:
+                count = self.readiness.unknown_count
+                parts.append(f"{count} check stock")
+            if not self.readiness.needed_count and not self.readiness.unknown_count:
+                parts.append("Pantry ready")
+        return " · ".join(parts)
+
+
+def meal_recipe_options(*, user, today=None) -> tuple[MealRecipeOption, ...]:
+    today = today or timezone.localdate()
+    options = []
+
+    for recipe in RecipePage.objects.live().order_by("title", "pk"):
+        readiness = recipe_readiness(recipe=recipe, user=user, today=today)
+        options.append(MealRecipeOption(recipe=recipe, readiness=readiness))
+
+    def rank(option):
+        readiness = option.readiness
+        if not readiness.items:
+            bucket = 3
+        elif not readiness.needed_count and not readiness.unknown_count:
+            bucket = 0
+        elif not readiness.unknown_count:
+            bucket = 1
+        else:
+            bucket = 2
+        return (
+            bucket,
+            readiness.needed_count,
+            readiness.unknown_count,
+            option.recipe.total_minutes,
+            option.recipe.title.casefold(),
+            option.recipe.pk,
+        )
+
+    return tuple(sorted(options, key=rank))
+
+
+@dataclass(frozen=True)
+class MealPlanDay:
+    date: date
+    entry: MealPlanEntry | None
+    readiness: object | None
+    recipe_available: bool
+    is_today: bool
+
+
+@dataclass(frozen=True)
+class MealPlanWeek:
+    start: date
+    end: date
+    days: tuple[MealPlanDay, ...]
+
+
+def week_start(anchor: date) -> date:
+    return anchor - timedelta(days=anchor.weekday())
+
+
+def meal_plan_for_date(*, user, meal_date: date) -> MealPlanEntry | None:
+    return MealPlanEntry.objects.filter(user=user, date=meal_date).select_related("recipe").first()
+
+
+def meal_plan_week(*, user, anchor=None, today=None) -> MealPlanWeek:
+    today = today or timezone.localdate()
+    anchor = anchor or today
+    start = week_start(anchor)
+    end = start + timedelta(days=6)
+
+    entries = {
+        entry.date: entry
+        for entry in MealPlanEntry.objects.filter(
+            user=user,
+            date__range=(start, end),
+        ).select_related("recipe")
+    }
+
+    days = []
+    for offset in range(7):
+        meal_date = start + timedelta(days=offset)
+        entry = entries.get(meal_date)
+        recipe_available = bool(entry and entry.recipe_id and entry.recipe and entry.recipe.live)
+        readiness = (
+            recipe_readiness(recipe=entry.recipe, user=user, today=meal_date)
+            if recipe_available
+            else None
+        )
+        days.append(
+            MealPlanDay(
+                date=meal_date,
+                entry=entry,
+                readiness=readiness,
+                recipe_available=recipe_available,
+                is_today=meal_date == today,
+            )
+        )
+
+    return MealPlanWeek(
+        start=start,
+        end=end,
+        days=tuple(days),
+    )
+
+
+@dataclass(frozen=True)
 class TodaySignal:
     kind: str
     priority: int
@@ -209,6 +331,9 @@ class TodaySnapshot:
     total_action_count: int
     has_more: bool
     shopping_count: int
+    dinner_name: str | None
+    dinner_needed_count: int
+    dinner_unknown_count: int
 
 
 def today_snapshot(*, user, today=None, limit: int = 6) -> TodaySnapshot:
@@ -216,6 +341,12 @@ def today_snapshot(*, user, today=None, limit: int = 6) -> TodaySnapshot:
     pantry = pantry_snapshot(user=user, today=today)
     routines = routine_snapshot(user=user, today=today)
     shopping = shopping_snapshot(user=user)
+    dinner = meal_plan_for_date(user=user, meal_date=today)
+    dinner_readiness = (
+        recipe_readiness(recipe=dinner.recipe, user=user, today=today)
+        if dinner and dinner.recipe_id and dinner.recipe and dinner.recipe.live
+        else None
+    )
 
     signals = []
 
@@ -273,11 +404,44 @@ def today_snapshot(*, user, today=None, limit: int = 6) -> TodaySnapshot:
                 )
             )
 
+    if dinner is None:
+        signals.append(
+            TodaySignal(
+                kind="dinner_unplanned",
+                priority=5,
+                title="Dinner is not planned yet",
+                detail="Choose a recipe or add a simple custom dinner.",
+                destination="plan",
+            )
+        )
+    elif dinner_readiness and dinner_readiness.needed_count:
+        count = dinner_readiness.needed_count
+        signals.append(
+            TodaySignal(
+                kind="dinner_needs",
+                priority=5,
+                title=f"{dinner.name} needs {count} Shopping item{'s' if count != 1 else ''}",
+                detail="Open Plan to review dinner readiness.",
+                destination="plan",
+            )
+        )
+    elif dinner_readiness and dinner_readiness.unknown_count:
+        count = dinner_readiness.unknown_count
+        signals.append(
+            TodaySignal(
+                kind="dinner_unknown",
+                priority=5,
+                title=f"Check stock for {dinner.name}",
+                detail=f"{count} ingredient{'s' if count != 1 else ''} cannot be confirmed safely.",
+                destination="plan",
+            )
+        )
+
     if shopping.open_count:
         signals.append(
             TodaySignal(
                 kind="shopping",
-                priority=5,
+                priority=6,
                 title=f"{shopping.open_count} item{'s' if shopping.open_count != 1 else ''} to buy",
                 detail="Your active shopping list is ready when you are.",
                 destination="shopping",
@@ -292,4 +456,7 @@ def today_snapshot(*, user, today=None, limit: int = 6) -> TodaySnapshot:
         total_action_count=total_action_count,
         has_more=total_action_count > limit,
         shopping_count=shopping.open_count,
+        dinner_name=dinner.name if dinner else None,
+        dinner_needed_count=(dinner_readiness.needed_count if dinner_readiness else 0),
+        dinner_unknown_count=(dinner_readiness.unknown_count if dinner_readiness else 0),
     )

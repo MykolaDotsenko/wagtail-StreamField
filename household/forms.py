@@ -1,4 +1,7 @@
 from django import forms
+from django.utils import timezone
+
+from recipes.models import RecipePage
 
 from .models import PantryItem, Routine, ShoppingItem
 from .services import AUTO_CATEGORY
@@ -196,3 +199,63 @@ class RoutinePostponeForm(RoutineActionForm):
         if postponed_to <= self.routine.effective_due_on:
             raise forms.ValidationError("Choose a date after the current due date.")
         return postponed_to
+
+
+class MealPlanForm(forms.Form):
+    date = forms.DateField(
+        label="Dinner date",
+        widget=forms.DateInput(attrs={"type": "date"}),
+    )
+    recipe = forms.ChoiceField(
+        required=False,
+        label="Recipe",
+    )
+    custom_name = forms.CharField(
+        max_length=160,
+        required=False,
+        strip=True,
+        label="Or custom dinner",
+        help_text="Use this when dinner is not a DomoNest recipe.",
+    )
+
+    def __init__(self, *args, recipe_options=(), today=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.today = today or timezone.localdate()
+        self.fields["recipe"].choices = [
+            ("", "Choose a recipe"),
+            *[(str(option.recipe.pk), option.selection_label) for option in recipe_options],
+        ]
+
+    def clean_date(self):
+        value = self.cleaned_data["date"]
+        if value < self.today:
+            raise forms.ValidationError("Choose today or a future date.")
+        return value
+
+    def clean_custom_name(self):
+        value = self.cleaned_data.get("custom_name") or ""
+        return ShoppingItem.normalize_display_name(value)
+
+    def clean(self):
+        cleaned = super().clean()
+        recipe_id = cleaned.get("recipe")
+        custom_name = cleaned.get("custom_name", "")
+
+        if recipe_id and custom_name:
+            raise forms.ValidationError("Choose a recipe or enter a custom dinner, not both.")
+        if not recipe_id and not custom_name:
+            raise forms.ValidationError("Choose a recipe or enter a custom dinner.")
+
+        if recipe_id:
+            try:
+                recipe = RecipePage.objects.live().get(pk=int(recipe_id))
+            except (RecipePage.DoesNotExist, TypeError, ValueError):
+                self.add_error("recipe", "Choose an available recipe.")
+            else:
+                cleaned["recipe_obj"] = recipe
+                cleaned["meal_name"] = recipe.title
+        else:
+            cleaned["recipe_obj"] = None
+            cleaned["meal_name"] = custom_name
+
+        return cleaned

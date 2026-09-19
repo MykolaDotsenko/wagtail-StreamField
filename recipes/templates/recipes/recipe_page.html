@@ -34,6 +34,12 @@
                     <dd>{{ page.get_difficulty_display }}</dd>
                 </div>
             </dl>
+
+            {% if request.user.is_authenticated %}
+                <div class="cluster">
+                    <a class="button button--primary" href="{% url 'household:plan' %}?recipe={{ page.pk }}#plan-dinner">Plan this dinner</a>
+                </div>
+            {% endif %}
         </div>
 
         {% if page.hero_image %}

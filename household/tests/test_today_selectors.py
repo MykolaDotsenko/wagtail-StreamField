@@ -3,7 +3,7 @@ from datetime import date, timedelta
 from django.contrib.auth import get_user_model
 from django.test import TestCase
 
-from household.models import PantryItem, Routine, ShoppingItem
+from household.models import MealPlanEntry, PantryItem, Routine, ShoppingItem
 from household.selectors import today_snapshot
 
 
@@ -45,6 +45,7 @@ class TodaySelectorTests(TestCase):
             approximate_level=PantryItem.ApproximateLevel.LOW,
         )
         ShoppingItem.objects.create(user=self.user, name="Bread")
+        MealPlanEntry.objects.create(user=self.user, date=today, name="Soup")
 
         snapshot = today_snapshot(user=self.user, today=today)
 
@@ -68,6 +69,7 @@ class TodaySelectorTests(TestCase):
             approximate_level=PantryItem.ApproximateLevel.LOW,
             expires_on=today - timedelta(days=1),
         )
+        MealPlanEntry.objects.create(user=self.user, date=today, name="Soup")
 
         snapshot = today_snapshot(user=self.user, today=today)
 
@@ -76,6 +78,7 @@ class TodaySelectorTests(TestCase):
 
     def test_feed_is_capped_but_total_attention_is_preserved(self):
         today = date(2026, 9, 19)
+        MealPlanEntry.objects.create(user=self.user, date=today, name="Soup")
         for index in range(8):
             Routine.objects.create(
                 user=self.user,
@@ -108,8 +111,36 @@ class TodaySelectorTests(TestCase):
             approximate_level=PantryItem.ApproximateLevel.LOW,
         )
         ShoppingItem.objects.create(user=other, name="Private shopping")
+        MealPlanEntry.objects.create(user=self.user, date=today, name="Soup")
 
         snapshot = today_snapshot(user=self.user, today=today)
 
         self.assertEqual(snapshot.signals, ())
         self.assertEqual(snapshot.shopping_count, 0)
+
+    def test_unplanned_dinner_is_attention_before_shopping(self):
+        today = date(2026, 9, 19)
+        ShoppingItem.objects.create(user=self.user, name="Bread")
+
+        snapshot = today_snapshot(user=self.user, today=today)
+
+        self.assertEqual(
+            [signal.kind for signal in snapshot.signals],
+            ["dinner_unplanned", "shopping"],
+        )
+        self.assertEqual(snapshot.dinner_name, None)
+
+    def test_planned_custom_dinner_removes_unplanned_signal(self):
+        today = date(2026, 9, 19)
+        MealPlanEntry.objects.create(
+            user=self.user,
+            date=today,
+            name="Soup and sandwiches",
+        )
+
+        snapshot = today_snapshot(user=self.user, today=today)
+
+        self.assertFalse(any(signal.kind == "dinner_unplanned" for signal in snapshot.signals))
+        self.assertEqual(snapshot.dinner_name, "Soup and sandwiches")
+        self.assertEqual(snapshot.dinner_needed_count, 0)
+        self.assertEqual(snapshot.dinner_unknown_count, 0)

@@ -952,10 +952,129 @@
         font-size: var(--step--1);
     }
 
-    .meal-placeholder {
+    .today-dinner {
+        display: flex;
         max-width: 52rem;
-        background: rgb(255 253 249 / 65%);
-        box-shadow: none;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-4);
+    }
+
+    .today-dinner > div {
+        display: grid;
+        gap: var(--space-2);
+    }
+
+    .week-nav {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: center;
+        justify-content: space-between;
+        gap: var(--space-3);
+        margin-bottom: var(--space-6);
+    }
+
+    .week-nav__range {
+        color: var(--color-text-muted);
+        font-size: var(--step--1);
+        text-align: center;
+    }
+
+    .meal-plan-form-card {
+        display: grid;
+        max-width: 64rem;
+        gap: var(--space-4);
+        margin-bottom: var(--space-10, 2.5rem);
+    }
+
+    .meal-plan-form-grid {
+        display: grid;
+        gap: var(--space-4);
+    }
+
+    .meal-plan-or {
+        color: var(--color-text-muted);
+        font-size: var(--step--1);
+        font-weight: 700;
+        text-align: center;
+        text-transform: uppercase;
+    }
+
+    .meal-plan-week-section {
+        display: grid;
+        gap: var(--space-4);
+        margin-top: var(--space-10, 2.5rem);
+    }
+
+    .meal-week {
+        display: grid;
+        gap: var(--space-3);
+        list-style: none;
+    }
+
+    .meal-day {
+        display: grid;
+        min-width: 0;
+        gap: var(--space-4);
+        align-content: start;
+        padding: var(--space-4);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-lg);
+        background: var(--color-surface);
+        box-shadow: var(--shadow-low);
+    }
+
+    .meal-day--today {
+        border-color: var(--color-primary);
+        box-shadow: 0 0 0 0.0625rem var(--color-primary-subtle);
+    }
+
+    .meal-day__header {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: var(--space-3);
+    }
+
+    .meal-day__header > div {
+        display: grid;
+        gap: var(--space-1);
+    }
+
+    .meal-day__weekday {
+        color: var(--color-text);
+        font-weight: 800;
+    }
+
+    .meal-day__header time {
+        color: var(--color-text-muted);
+        font-size: var(--step--1);
+    }
+
+    .meal-day__body {
+        display: grid;
+        gap: var(--space-2);
+    }
+
+    .meal-day__body--empty {
+        color: var(--color-text-muted);
+    }
+
+    .meal-day__status {
+        gap: var(--space-2);
+    }
+
+    .meal-day__actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: var(--space-2);
+        align-items: center;
+        margin-top: auto;
+    }
+
+    .meal-day__actions form {
+        margin: 0;
     }
 
     .today-empty {
@@ -1654,7 +1773,21 @@
         }
 
         .today-shortcuts {
-            grid-template-columns: repeat(3, minmax(0, 1fr));
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .meal-plan-form-grid {
+            grid-template-columns: minmax(10rem, 0.55fr) minmax(0, 1.45fr);
+            align-items: end;
+        }
+
+        .meal-plan-or,
+        .meal-plan-form-grid .field:last-child {
+            grid-column: 1 / -1;
+        }
+
+        .meal-week {
+            grid-template-columns: repeat(2, minmax(0, 1fr));
         }
 
         .recipe-hero {
@@ -1702,6 +1835,14 @@
             grid-template-columns: minmax(18rem, 0.72fr) minmax(0, 1.28fr);
         }
 
+        .today-shortcuts {
+            grid-template-columns: repeat(4, minmax(0, 1fr));
+        }
+
+        .meal-week {
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+
         .recipe-ingredients {
             position: sticky;
             top: calc(var(--header-height) + var(--space-6));
@@ -1713,6 +1854,10 @@
     }
 
     @media (min-width: 75rem) {
+        .meal-week {
+            grid-template-columns: repeat(7, minmax(0, 1fr));
+        }
+
         .attention-card,
         .surface-panel {
             padding: var(--space-8);

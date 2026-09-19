@@ -290,15 +290,31 @@ The recipe action is POST-only, CSRF-protected and returns the user to the same 
 
 ## Meal plan
 
-MealPlanEntry:
-- household;
-- date;
-- meal slot (MVP: dinner);
-- recipe optional;
-- free-text meal fallback optional.
+Implemented in PR10 as dinner-only private household state.
 
-Invariant:
-- at most one dinner entry per household/date in MVP.
+MealPlanEntry stores:
+- owner;
+- dinner date;
+- optional RecipePage link;
+- durable dinner-name snapshot;
+- created / updated timestamps.
+
+The name snapshot is always stored, including recipe dinners. If public editorial recipe content is later deleted, the private household plan keeps the human-readable dinner decision while the Recipe FK safely becomes NULL.
+
+### Meal plan invariants
+
+1. At most one dinner exists per user + date.
+2. Dinner name is normalized and cannot be empty.
+3. Saving the same date is an upsert: it replaces that day's dinner rather than creating duplicate state.
+4. Recipe dinners take their snapshot name from the selected live RecipePage, not from caller-provided text.
+5. Custom dinners require only a normalized name.
+6. Recipe readiness is derived through the PR9 reconciliation service and is never persisted on MealPlanEntry.
+7. Week views and Today are owner-scoped.
+8. Recipe readiness for a planned dinner is evaluated against the planned date, so stock expiring before dinner becomes UNKNOWN.
+9. Deleting a planned dinner is POST-only and owner-scoped.
+10. Past dates are rejected by the interactive planning form.
+
+The MVP has one implicit meal slot: dinner. A meal-slot column is intentionally omitted until another meal type creates real product value.
 
 ## Today attention feed
 
@@ -311,13 +327,14 @@ Candidate signals:
 - shopping list readiness;
 - optional useful recommendation.
 
-PR6 priority is deterministic:
+PR10 priority is deterministic:
 1. overdue routine;
 2. expired pantry;
 3. routine due today;
 4. pantry use-soon;
 5. pantry low-stock;
-6. shopping summary.
+6. unresolved dinner planning/readiness;
+7. shopping summary.
 
 The feed is capped at six visible signals; total attention count is retained separately.
 
