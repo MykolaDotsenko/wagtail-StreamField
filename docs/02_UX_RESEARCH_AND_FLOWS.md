@@ -156,12 +156,37 @@ Shopping mode:
 ### Completion behavior
 
 On completion:
-1. state changes immediately after successful server response;
-2. item remains visible and visually subdued;
-3. snackbar confirms;
-4. Undo is available.
+1. the server records `COMPLETED` and `completed_at`;
+2. the item moves to the Bought section in normal mode;
+3. a success message confirms the change;
+4. the Bought item can be reopened with the same one-tap control.
+
+In Shopping mode, completed items disappear from the active shopping surface after the redirect so the screen stays focused on what remains.
 
 Never make swipe the only interaction.
+
+### Duplicate behavior
+
+Quick Add uses normalized item identity. Adding an equivalent open item increases its quantity instead of creating a second active row.
+
+Normalization is intentionally conservative:
+- Unicode NFKC;
+- whitespace collapse;
+- case folding.
+
+No fuzzy/semantic matching is claimed.
+
+### Remove and Undo
+
+Remove is distinct from completion.
+
+The initial remove is a soft delete. The redirect carries only the removed item ID, and the server re-resolves that ID through the authenticated user's queryset before showing Undo.
+
+Undo is a POST action. If an equivalent open item was created after removal, Undo merges quantities rather than violating the active-item uniqueness invariant.
+
+### PR3 progressive enhancement decision
+
+The baseline Shopping flow uses ordinary Django forms and redirects. No JavaScript or HTMX is required for add, complete, reopen, remove, Undo or Shopping mode. This establishes correct semantics before optional partial-page enhancement.
 
 ## Flow 4 — Pantry
 
