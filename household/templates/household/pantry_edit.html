@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+
+{% block title %}Edit {{ item.name }}{% endblock %}
+{% block body_class %}template-pantry-edit{% endblock %}
+
+{% block content %}
+<section class="page-heading page-heading--compact" aria-labelledby="pantry-edit-title">
+    <p class="eyebrow">Pantry</p>
+    <h1 id="pantry-edit-title">Edit {{ item.name }}</h1>
+    <p class="lede">Keep only the level of detail that helps future decisions.</p>
+</section>
+
+<section class="surface-panel pantry-edit-card">
+    <form method="post" class="stack" novalidate>
+        {% csrf_token %}
+        {% include "household/_pantry_form_fields.html" with expanded=True %}
+        <div class="cluster">
+            <button class="button button--primary" type="submit">Save changes</button>
+            <a class="button button--ghost" href="{% url 'household:pantry' %}">Cancel</a>
+        </div>
+    </form>
+
+    <div class="danger-zone">
+        <div>
+            <strong>Remove from pantry</strong>
+            <p class="meta-text">Use this when you no longer want DomoNest to track the item.</p>
+        </div>
+        <form method="post" action="{% url 'household:remove_pantry_item' item.pk %}">
+            {% csrf_token %}
+            <button class="button button--danger" type="submit">Remove item</button>
+        </form>
+    </div>
+</section>
+{% endblock %}
