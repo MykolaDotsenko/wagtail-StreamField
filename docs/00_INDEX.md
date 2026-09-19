@@ -75,3 +75,8 @@ A visually impressive change must never override a higher-ranked concern.
 - Do not copy requirements between files; link to the authoritative section.
 - If implementation and documentation diverge, the PR must either fix the implementation or explicitly update the documented decision.
 - Every non-trivial feature PR should reference the relevant document sections in its description.
+
+
+## Release verification
+
+- `12_RELEASE_EVIDENCE.md` — exact integrated CI, PostgreSQL, browser and accessibility evidence for the portfolio release.
