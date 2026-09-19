@@ -106,3 +106,153 @@ class ShoppingItem(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class PantryItem(models.Model):
+    class QuantityMode(models.TextChoices):
+        APPROXIMATE = "approximate", "Approximate"
+        PRECISE = "precise", "Precise"
+
+    class ApproximateLevel(models.TextChoices):
+        FULL = "full", "Full"
+        HALF = "half", "Half"
+        LOW = "low", "Low"
+
+    class Unit(models.TextChoices):
+        ITEM = "item", "item"
+        GRAM = "g", "g"
+        KILOGRAM = "kg", "kg"
+        MILLILITRE = "ml", "ml"
+        LITRE = "l", "l"
+
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="pantry_items",
+    )
+    name = models.CharField(max_length=120)
+    normalized_name = models.CharField(max_length=255, editable=False)
+    category = models.CharField(
+        max_length=20,
+        choices=ShoppingItem.Category.choices,
+        default=ShoppingItem.Category.OTHER,
+    )
+    quantity_mode = models.CharField(
+        max_length=12,
+        choices=QuantityMode.choices,
+        default=QuantityMode.APPROXIMATE,
+    )
+    approximate_level = models.CharField(
+        max_length=8,
+        choices=ApproximateLevel.choices,
+        blank=True,
+        default=ApproximateLevel.FULL,
+    )
+    amount = models.DecimalField(
+        max_digits=9,
+        decimal_places=2,
+        blank=True,
+        null=True,
+    )
+    unit = models.CharField(
+        max_length=8,
+        choices=Unit.choices,
+        blank=True,
+        default="",
+    )
+    low_stock_threshold = models.DecimalField(
+        max_digits=9,
+        decimal_places=2,
+        blank=True,
+        null=True,
+    )
+    expires_on = models.DateField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["name", "pk"]
+        constraints = [
+            models.CheckConstraint(
+                condition=~models.Q(normalized_name=""),
+                name="pantry_name_not_empty",
+            ),
+            models.CheckConstraint(
+                condition=models.Q(amount__isnull=True) | models.Q(amount__gte=0),
+                name="pantry_amount_non_negative",
+            ),
+            models.CheckConstraint(
+                condition=(
+                    models.Q(low_stock_threshold__isnull=True)
+                    | models.Q(low_stock_threshold__gte=0)
+                ),
+                name="pantry_threshold_non_negative",
+            ),
+            models.CheckConstraint(
+                condition=(
+                    models.Q(
+                        quantity_mode="approximate",
+                        amount__isnull=True,
+                        unit="",
+                        low_stock_threshold__isnull=True,
+                        approximate_level__in=["full", "half", "low"],
+                    )
+                    | (
+                        models.Q(
+                            quantity_mode="precise",
+                            amount__isnull=False,
+                            approximate_level="",
+                        )
+                        & ~models.Q(unit="")
+                    )
+                ),
+                name="pantry_quantity_mode_consistent",
+            ),
+            models.UniqueConstraint(
+                fields=["user", "normalized_name"],
+                name="unique_pantry_name_per_user",
+            ),
+        ]
+        indexes = [
+            models.Index(
+                fields=["user", "expires_on"],
+                name="pantry_expiry_lookup",
+            ),
+        ]
+
+    @property
+    def is_low_stock(self) -> bool:
+        if self.quantity_mode == self.QuantityMode.APPROXIMATE:
+            return self.approximate_level == self.ApproximateLevel.LOW
+        return (
+            self.low_stock_threshold is not None
+            and self.amount is not None
+            and self.amount <= self.low_stock_threshold
+        )
+
+    def is_expired(self, *, today) -> bool:
+        return self.expires_on is not None and self.expires_on < today
+
+    def expires_soon(self, *, today, days: int = 3) -> bool:
+        if self.expires_on is None or self.expires_on < today:
+            return False
+        return self.expires_on <= today + timezone.timedelta(days=days)
+
+    @property
+    def has_unknown_expiry(self) -> bool:
+        return self.expires_on is None
+
+    @property
+    def quantity_label(self) -> str:
+        if self.quantity_mode == self.QuantityMode.APPROXIMATE:
+            return self.get_approximate_level_display()
+        amount = f"{self.amount.normalize():f}" if self.amount is not None else "0"
+        return f"{amount} {self.get_unit_display()}"
+
+    def save(self, *args, **kwargs):
+        self.name = ShoppingItem.normalize_display_name(self.name)
+        self.normalized_name = ShoppingItem.normalize_identity(self.name)
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.name
