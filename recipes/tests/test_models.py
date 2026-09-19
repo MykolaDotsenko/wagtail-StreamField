@@ -1,4 +1,3 @@
-from datetime import date
 from decimal import Decimal
 
 from django.db import IntegrityError, transaction
@@ -118,6 +117,3 @@ class RecipeDomainTests(TestCase):
         )
 
         self.assertEqual(self.recipe.get_ingredient_names(), "Tomato\nGarlic")
-
-    def test_date_import_is_not_needed_for_recipe_state(self):
-        self.assertEqual(date(2026, 9, 19).year, 2026)
