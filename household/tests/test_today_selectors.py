@@ -118,7 +118,6 @@ class TodaySelectorTests(TestCase):
         self.assertEqual(snapshot.signals, ())
         self.assertEqual(snapshot.shopping_count, 0)
 
-
     def test_unplanned_dinner_is_attention_before_shopping(self):
         today = date(2026, 9, 19)
         ShoppingItem.objects.create(user=self.user, name="Bread")
