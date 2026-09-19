@@ -1,4 +1,5 @@
 import unicodedata
+from datetime import timedelta
 
 from django.conf import settings
 from django.db import models
@@ -236,7 +237,7 @@ class PantryItem(models.Model):
     def expires_soon(self, *, today, days: int = 3) -> bool:
         if self.expires_on is None or self.expires_on < today:
             return False
-        return self.expires_on <= today + timezone.timedelta(days=days)
+        return self.expires_on <= today + timedelta(days=days)
 
     @property
     def has_unknown_expiry(self) -> bool:
