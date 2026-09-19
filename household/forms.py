@@ -1,9 +1,7 @@
 from django import forms
 
 from .models import ShoppingItem
-
-
-AUTO_CATEGORY = "auto"
+from .services import AUTO_CATEGORY
 
 
 class ShoppingItemCreateForm(forms.Form):
