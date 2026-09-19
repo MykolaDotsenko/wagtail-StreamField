@@ -291,3 +291,62 @@ Negative:
 - Wagtail Page inline models / ParentalKey documentation
 - Wagtail snippets documentation
 - Wagtail search indexing documentation
+
+
+---
+
+## ADR-008 — Reconciliation prefers uncertainty over guessed sufficiency
+
+Status: Accepted
+Date: 2026-09-19
+
+### Context
+
+Recipe readiness crosses public editorial recipe data and private household Pantry state. Pantry deliberately supports low-maintenance approximate quantities, while recipe units also include measures that Pantry cannot safely compare.
+
+A visually impressive but probabilistic answer would violate the product's trust model.
+
+### Decision
+
+PR9 uses four deterministic states: AVAILABLE, LOW, MISSING and UNKNOWN.
+
+Matching order:
+1. canonical Ingredient link;
+2. conservative exact normalized-name fallback for unlinked legacy/free-text Pantry rows;
+3. no fuzzy or semantic match.
+
+Safe numeric conversion is intentionally limited to item, mass (g/kg) and volume (ml/l). Unsupported or incompatible units become UNKNOWN.
+
+Expired Pantry entries are UNKNOWN. Approximate FULL/HALF with an explicit recipe amount are UNKNOWN. Approximate LOW is LOW.
+
+Only non-optional MISSING + LOW ingredients become automatic Shopping demand. UNKNOWN is never auto-added.
+
+Shopping writes reuse the existing idempotent ensure command, now canonical-Ingredient aware. Schema constraints enforce one linked Pantry row per user/ingredient and one active linked Shopping demand per user/ingredient.
+
+### Alternatives considered
+
+1. Treat approximate FULL as sufficient for any recipe quantity.
+2. Convert tsp/tbsp/cup to volume unconditionally.
+3. Fuzzy-match free-text ingredient names.
+4. Auto-add UNKNOWN items "just in case".
+5. Persist readiness rows.
+
+### Consequences
+
+Positive:
+- explainable behavior;
+- no false precision;
+- strong privacy boundary;
+- safe retry/double-submit behavior;
+- same readiness contract can feed PR10 Meal planning.
+
+Negative:
+- some users must manually check uncertain stock;
+- ingredient aliasing is deferred;
+- richer culinary unit conversions are deferred.
+
+### References
+
+- `docs/02_UX_RESEARCH_AND_FLOWS.md`
+- `docs/05_DOMAIN_MODEL.md`
+- `docs/04_ARCHITECTURE.md`
