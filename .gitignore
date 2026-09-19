@@ -16,13 +16,18 @@ build/
 # Django
 *.sqlite3
 media/
-static/
+staticfiles/
 
 # Secrets / local settings
 .env
 .env.*
 !.env.example
 mysite/settings/local.py
+
+# Node / browser testing
+node_modules/
+playwright-report/
+test-results/
 
 # Tests / quality
 .coverage
