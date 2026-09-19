@@ -53,9 +53,7 @@ class MealPlanViewTests(TestCase):
     def test_recipe_query_prefills_without_mutating(self):
         self.client.force_login(self.user)
 
-        response = self.client.get(
-            f"{reverse('household:plan')}?recipe={self.recipe.pk}"
-        )
+        response = self.client.get(f"{reverse('household:plan')}?recipe={self.recipe.pk}")
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.context["form"]["recipe"].value(), str(self.recipe.pk))
@@ -161,9 +159,7 @@ class MealPlanViewTests(TestCase):
         client = Client(enforce_csrf_checks=True)
         client.force_login(self.user)
 
-        response = client.post(
-            reverse("household:remove_dinner", args=[entry.pk])
-        )
+        response = client.post(reverse("household:remove_dinner", args=[entry.pk]))
 
         self.assertEqual(response.status_code, 403)
         self.assertTrue(MealPlanEntry.objects.filter(pk=entry.pk).exists())
@@ -171,9 +167,7 @@ class MealPlanViewTests(TestCase):
     def test_invalid_week_query_falls_back_safely(self):
         self.client.force_login(self.user)
 
-        response = self.client.get(
-            f"{reverse('household:plan')}?week=not-a-date"
-        )
+        response = self.client.get(f"{reverse('household:plan')}?week=not-a-date")
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(len(response.context["week"].days), 7)
