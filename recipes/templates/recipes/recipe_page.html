@@ -1,0 +1,116 @@
+{% extends "base.html" %}
+{% load wagtailcore_tags wagtailimages_tags %}
+
+{% block title %}{{ page.title }}{% endblock %}
+{% block body_class %}template-recipepage{% endblock %}
+
+{% block content %}
+<article class="recipe-detail">
+    <header class="recipe-hero">
+        <div class="recipe-hero__copy">
+            <p class="eyebrow">Recipe</p>
+            <h1>{{ page.title }}</h1>
+            <p class="lede">{{ page.intro }}</p>
+
+            <dl class="recipe-facts" aria-label="Recipe facts">
+                <div>
+                    <dt>Prep</dt>
+                    <dd>{{ page.prep_minutes }} min</dd>
+                </div>
+                <div>
+                    <dt>Cook</dt>
+                    <dd>{{ page.cook_minutes }} min</dd>
+                </div>
+                <div>
+                    <dt>Total</dt>
+                    <dd>{{ page.total_minutes }} min</dd>
+                </div>
+                <div>
+                    <dt>Serves</dt>
+                    <dd>{{ page.servings }}</dd>
+                </div>
+                <div>
+                    <dt>Difficulty</dt>
+                    <dd>{{ page.get_difficulty_display }}</dd>
+                </div>
+            </dl>
+        </div>
+
+        {% if page.hero_image %}
+            {% image page.hero_image fill-1200x675 as hero %}
+            <figure class="recipe-hero__media">
+                <img
+                    src="{{ hero.url }}"
+                    width="{{ hero.width }}"
+                    height="{{ hero.height }}"
+                    alt="{{ page.hero_alt_text }}"
+                >
+            </figure>
+        {% endif %}
+    </header>
+
+    <div class="recipe-layout">
+        <aside class="recipe-ingredients" aria-labelledby="ingredients-title">
+            <div class="section-heading">
+                <div>
+                    <p class="eyebrow">Ready first</p>
+                    <h2 id="ingredients-title">Ingredients</h2>
+                </div>
+            </div>
+
+            <ul class="recipe-ingredient-list">
+                {% for line in page.ingredient_lines.all %}
+                    <li>
+                        <span class="recipe-ingredient-list__amount">
+                            {% if line.amount_label %}{{ line.amount_label }}{% else %}As needed{% endif %}
+                        </span>
+                        <span class="recipe-ingredient-list__name">
+                            <strong>{{ line.ingredient.name }}</strong>
+                            {% if line.note %}<span>{{ line.note }}</span>{% endif %}
+                        </span>
+                        {% if line.optional %}
+                            <span class="status-badge">Optional</span>
+                        {% endif %}
+                    </li>
+                {% empty %}
+                    <li class="meta-text">Ingredients are being prepared by the editor.</li>
+                {% endfor %}
+            </ul>
+        </aside>
+
+        <section class="recipe-method" aria-labelledby="method-title">
+            <div class="section-heading">
+                <div>
+                    <p class="eyebrow">Cook</p>
+                    <h2 id="method-title">Method</h2>
+                </div>
+            </div>
+
+            <div class="prose recipe-method__content">
+                {% for block in page.instructions %}
+                    {% include_block block %}
+                {% empty %}
+                    <p>Instructions are being prepared by the editor.</p>
+                {% endfor %}
+            </div>
+        </section>
+    </div>
+
+    {% with tags=page.tags.all %}
+        {% if tags %}
+            <section class="prose-section" aria-labelledby="recipe-tags-title">
+                <h2 id="recipe-tags-title">Topics</h2>
+                <ul class="tag-list">
+                    {% for tag in tags %}
+                        <li><span class="tag-link">{{ tag }}</span></li>
+                    {% endfor %}
+                </ul>
+            </section>
+        {% endif %}
+    {% endwith %}
+
+    <div class="prose-section">
+        <a class="button button--secondary" href="{{ page.get_parent.url }}">Back to recipes</a>
+    </div>
+</article>
+{% endblock %}
