@@ -65,7 +65,7 @@
                         enterkeyhint="done"
                         placeholder="Milk, tomatoes, detergent…"
                         required
-                        {% if form.name.errors %}aria-describedby="shopping-name-errors"{% endif %}
+                        {% if form.name.errors %}aria-invalid="true" aria-describedby="shopping-name-errors" autofocus{% endif %}
                     >
                     <button class="button button--primary" type="submit">Add item</button>
                 </div>
@@ -76,7 +76,7 @@
                 {% endif %}
             </div>
 
-            <details class="disclosure">
+            <details class="disclosure"{% if form.quantity.errors or form.category.errors %} open{% endif %}>
                 <summary>Quantity and category</summary>
                 <div class="optional-fields">
                     <div class="field">
@@ -90,9 +90,10 @@
                             max="99"
                             inputmode="numeric"
                             value="{{ form.quantity.value|default:1 }}"
+                            {% if form.quantity.errors %}aria-invalid="true" aria-describedby="shopping-quantity-errors"{% if not form.name.errors %} autofocus{% endif %}{% endif %}
                         >
                         {% if form.quantity.errors %}
-                            <div class="field__error">
+                            <div class="field__error" id="shopping-quantity-errors">
                                 {% for error in form.quantity.errors %}<p>{{ error }}</p>{% endfor %}
                             </div>
                         {% endif %}
@@ -104,12 +105,19 @@
                             class="field__control{% if form.category.errors %} field__control--error{% endif %}"
                             id="shopping-category"
                             name="{{ form.category.html_name }}"
+                            aria-describedby="shopping-category-help{% if form.category.errors %} shopping-category-errors{% endif %}"
+                            {% if form.category.errors %}aria-invalid="true"{% if not form.name.errors and not form.quantity.errors %} autofocus{% endif %}{% endif %}
                         >
                             {% for value, label in form.fields.category.choices %}
                                 <option value="{{ value }}"{% if form.category.value|default:"auto" == value %} selected{% endif %}>{{ label }}</option>
                             {% endfor %}
                         </select>
-                        <p class="field__help">Common items are categorized automatically. You stay in control.</p>
+                        <p class="field__help" id="shopping-category-help">Common items are categorized automatically. You stay in control.</p>
+                        {% if form.category.errors %}
+                            <div class="field__error" id="shopping-category-errors">
+                                {% for error in form.category.errors %}<p>{{ error }}</p>{% endfor %}
+                            </div>
+                        {% endif %}
                     </div>
                 </div>
             </details>
