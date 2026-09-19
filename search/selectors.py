@@ -129,9 +129,7 @@ def _home_search(*, user, query: str, today: date) -> tuple[HomeSearchResult, ..
     ).order_by("name", "pk")[:SEARCH_LIMIT_PER_GROUP]
     for item in pantry_items:
         expiry = (
-            f"expires {item.expires_on:%b %d}"
-            if item.expires_on is not None
-            else "expiry unknown"
+            f"expires {item.expires_on:%b %d}" if item.expires_on is not None else "expiry unknown"
         )
         results.append(
             HomeSearchResult(
