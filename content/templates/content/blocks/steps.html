@@ -1,0 +1,8 @@
+<section class="guide-steps"{% if not value.title %} aria-label="Steps"{% endif %}>
+    {% if value.title %}<h2>{{ value.title }}</h2>{% endif %}
+    <ol class="guide-steps__items">
+        {% for step in value.steps %}
+            <li><span>{{ step }}</span></li>
+        {% endfor %}
+    </ol>
+</section>
