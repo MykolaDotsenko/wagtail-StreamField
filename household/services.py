@@ -1,9 +1,11 @@
+from calendar import monthrange
 from dataclasses import dataclass
+from datetime import date, timedelta
 
 from django.db import models, transaction
 from django.utils import timezone
 
-from household.models import PantryItem, ShoppingItem
+from household.models import PantryItem, Routine, RoutineEvent, ShoppingItem
 
 AUTO_CATEGORY = "auto"
 
@@ -337,3 +339,214 @@ def add_pantry_item_to_shopping(*, user, item_id: int) -> AddShoppingResult:
         name=item.name,
         category=item.category,
     )
+
+
+class StaleRoutineAction(Exception):
+    pass
+
+
+def _monthly_date(*, year: int, month: int, anchor_day: int) -> date:
+    return date(year, month, min(anchor_day, monthrange(year, month)[1]))
+
+
+def _next_month(*, current: date, anchor_day: int) -> date:
+    year = current.year + (1 if current.month == 12 else 0)
+    month = 1 if current.month == 12 else current.month + 1
+    return _monthly_date(year=year, month=month, anchor_day=anchor_day)
+
+
+def next_routine_due_date(
+    *,
+    frequency: str,
+    current_due: date,
+    anchor_day: int | None,
+    after_date: date,
+) -> date | None:
+    if frequency == Routine.Frequency.ONE_TIME:
+        return None
+
+    if frequency == Routine.Frequency.DAILY:
+        candidate = current_due + timedelta(days=1)
+        if candidate <= after_date:
+            candidate = after_date + timedelta(days=1)
+        return candidate
+
+    if frequency == Routine.Frequency.WEEKLY:
+        candidate = current_due + timedelta(days=7)
+        if candidate <= after_date:
+            weeks = ((after_date - candidate).days // 7) + 1
+            candidate += timedelta(days=weeks * 7)
+        return candidate
+
+    if frequency == Routine.Frequency.MONTHLY:
+        if anchor_day is None:
+            raise ValueError("Monthly routines require an anchor day.")
+        candidate = _next_month(current=current_due, anchor_day=anchor_day)
+        while candidate <= after_date:
+            candidate = _next_month(current=candidate, anchor_day=anchor_day)
+        return candidate
+
+    raise ValueError("Unsupported routine frequency.")
+
+
+@transaction.atomic
+def create_routine(*, user, data) -> Routine:
+    frequency = data["frequency"]
+    due_on = data["due_on"]
+    return Routine.objects.create(
+        user=user,
+        title=data["title"],
+        room=data["room"],
+        frequency=frequency,
+        due_on=due_on,
+        recurrence_anchor_day=(
+            due_on.day if frequency == Routine.Frequency.MONTHLY else None
+        ),
+        expected_duration_minutes=data["expected_duration_minutes"],
+    )
+
+
+@transaction.atomic
+def update_routine(*, user, routine_id: int, data) -> Routine:
+    routine = Routine.objects.select_for_update().get(pk=routine_id, user=user)
+    frequency = data["frequency"]
+    due_on = data["due_on"]
+    routine.title = data["title"]
+    routine.room = data["room"]
+    routine.frequency = frequency
+    routine.due_on = due_on
+    routine.postponed_until = None
+    routine.recurrence_anchor_day = (
+        due_on.day if frequency == Routine.Frequency.MONTHLY else None
+    )
+    routine.expected_duration_minutes = data["expected_duration_minutes"]
+    routine.active = True
+    routine.save()
+    return routine
+
+
+def _locked_current_routine(*, user, routine_id: int, expected_scheduled_for: date) -> Routine:
+    routine = Routine.objects.select_for_update().get(
+        pk=routine_id,
+        user=user,
+        active=True,
+    )
+    if routine.due_on != expected_scheduled_for:
+        raise StaleRoutineAction
+    return routine
+
+
+@transaction.atomic
+def _terminal_routine_action(
+    *,
+    user,
+    routine_id: int,
+    expected_scheduled_for: date,
+    outcome: str,
+    today: date,
+) -> Routine:
+    routine = _locked_current_routine(
+        user=user,
+        routine_id=routine_id,
+        expected_scheduled_for=expected_scheduled_for,
+    )
+
+    RoutineEvent.objects.create(
+        routine=routine,
+        scheduled_for=routine.due_on,
+        outcome=outcome,
+    )
+
+    next_due = next_routine_due_date(
+        frequency=routine.frequency,
+        current_due=routine.due_on,
+        anchor_day=routine.recurrence_anchor_day,
+        after_date=today,
+    )
+
+    routine.postponed_until = None
+    if next_due is None:
+        routine.active = False
+    else:
+        routine.due_on = next_due
+
+    routine.save(
+        update_fields=[
+            "active",
+            "due_on",
+            "postponed_until",
+            "updated_at",
+        ]
+    )
+    return routine
+
+
+def complete_routine(
+    *,
+    user,
+    routine_id: int,
+    expected_scheduled_for: date,
+    today: date,
+) -> Routine:
+    return _terminal_routine_action(
+        user=user,
+        routine_id=routine_id,
+        expected_scheduled_for=expected_scheduled_for,
+        outcome=RoutineEvent.Outcome.COMPLETED,
+        today=today,
+    )
+
+
+def skip_routine(
+    *,
+    user,
+    routine_id: int,
+    expected_scheduled_for: date,
+    today: date,
+) -> Routine:
+    return _terminal_routine_action(
+        user=user,
+        routine_id=routine_id,
+        expected_scheduled_for=expected_scheduled_for,
+        outcome=RoutineEvent.Outcome.SKIPPED,
+        today=today,
+    )
+
+
+@transaction.atomic
+def postpone_routine(
+    *,
+    user,
+    routine_id: int,
+    expected_scheduled_for: date,
+    expected_effective_due_on: date,
+    postponed_to: date,
+) -> Routine:
+    routine = _locked_current_routine(
+        user=user,
+        routine_id=routine_id,
+        expected_scheduled_for=expected_scheduled_for,
+    )
+    if routine.effective_due_on != expected_effective_due_on:
+        raise StaleRoutineAction
+    if postponed_to <= routine.effective_due_on:
+        raise ValueError("Postponed date must be after the current due date.")
+
+    RoutineEvent.objects.create(
+        routine=routine,
+        scheduled_for=routine.due_on,
+        outcome=RoutineEvent.Outcome.POSTPONED,
+        postponed_to=postponed_to,
+    )
+    routine.postponed_until = postponed_to
+    routine.save(update_fields=["postponed_until", "updated_at"])
+    return routine
+
+
+@transaction.atomic
+def archive_routine(*, user, routine_id: int) -> Routine:
+    routine = Routine.objects.select_for_update().get(pk=routine_id, user=user)
+    routine.active = False
+    routine.postponed_until = None
+    routine.save(update_fields=["active", "postponed_until", "updated_at"])
+    return routine
