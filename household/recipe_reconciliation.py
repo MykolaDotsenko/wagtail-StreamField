@@ -143,8 +143,7 @@ def _line_readiness(*, line, pantry_item: PantryItem | None, today) -> RecipeIng
     )
 
 
-def pantry_readiness_lookup(*, user) -> PantryReadinessLookup:
-    pantry_items = PantryItem.objects.filter(user=user).select_related("ingredient").order_by("pk")
+def pantry_readiness_lookup_from_items(pantry_items) -> PantryReadinessLookup:
     by_ingredient = {}
     by_name = {}
 
@@ -158,6 +157,11 @@ def pantry_readiness_lookup(*, user) -> PantryReadinessLookup:
         by_ingredient=by_ingredient,
         by_name=by_name,
     )
+
+
+def pantry_readiness_lookup(*, user) -> PantryReadinessLookup:
+    pantry_items = PantryItem.objects.filter(user=user).select_related("ingredient").order_by("pk")
+    return pantry_readiness_lookup_from_items(pantry_items)
 
 
 def recipe_readiness(
