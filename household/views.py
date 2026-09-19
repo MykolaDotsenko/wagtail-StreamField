@@ -164,8 +164,6 @@ def restore_item(request, item_id):
     return redirect("household:shopping")
 
 
-
-
 @login_required
 @require_POST
 def add_recipe_to_shopping(request, recipe_id):
