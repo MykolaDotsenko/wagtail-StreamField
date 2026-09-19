@@ -165,14 +165,20 @@ Avoid:
 
 ## Search
 
-Search should distinguish result domains:
-- user's private household state;
+Search distinguishes result domains:
 - public recipes;
-- public guides.
+- public guides;
+- the signed-in user's private household state.
 
-Do not leak another user's private data into search indexes/results.
+PR11 keeps these execution paths separate:
+- Wagtail's indexed `.search()` API searches only public editorial Page models;
+- private Shopping, Pantry, Routine and MealPlanEntry state is queried through explicit owner-scoped Django QuerySets;
+- anonymous requests never execute the private search branch;
+- public and private result groups are visually labelled separately.
 
-Wagtail database search is acceptable for MVP content scale.
+Do not place private household rows into a shared public Wagtail search surface merely for convenience.
+
+Wagtail database search is acceptable for MVP editorial scale. Private search remains bounded relational lookup until measured scale justifies a dedicated private index.
 
 ## Caching
 
