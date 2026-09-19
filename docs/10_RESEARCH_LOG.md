@@ -352,13 +352,44 @@ PR8 RecipePage can reuse shared content blocks without coupling recipe structure
 
 ---
 
+## 2026-09-19 — Where should recipe ingredient structure live?
+
+Area: Architecture / Domain / Wagtail
+Status: Validated in PR8
+Confidence: High
+
+### Question
+
+Should recipe ingredients be a StreamField block, free text, or relational inline rows?
+
+### Evidence
+
+Wagtail inline models use `ParentalKey` and optionally `Orderable` for repeated page-owned structured data that participates in page revisions. Wagtail snippets are intended for reusable non-page entities. Wagtail search can index callables/related values.
+
+Official references:
+- https://docs.wagtail.org/en/stable-7.4.x/topics/pages.html
+- https://docs.wagtail.org/en/stable-7.4.x/topics/snippets/
+- https://docs.wagtail.org/en/stable/topics/search/indexing.html
+
+### Finding
+
+Use a reusable Ingredient snippet plus ordered relational RecipeIngredient rows. Keep narrative cooking instructions in a constrained StreamField.
+
+For MVP, normalized ingredient identity uses Unicode NFKC + whitespace collapse + casefold and one canonical Ingredient is allowed once per recipe. No fuzzy aliases or food ontology are introduced.
+
+### Product/engineering impact
+
+PR9 can reconcile by canonical Ingredient identity and degrade unsupported unit comparisons to UNKNOWN instead of parsing prose or guessing semantic equivalence.
+
+---
+
 ## Open research backlog
 
 These questions should be answered only when their PR approaches:
 
 1. Should progressive interactions use minimal vanilla JS or HTMX?
-2. What normalized ingredient identity is sufficient for the MVP without creating an ontology project?
-3. What is the clearest non-technical Wagtail authoring workflow for RecipePage ingredients?
+2. [Resolved PR8] Canonical Ingredient uses NFKC + whitespace collapse + casefold; no fuzzy ontology.
+3. [Resolved PR8] Ingredient snippet + ordered InlinePanel rows; narrative remains StreamField.
 4. [Resolved PR5] Use a Routine cadence row + immutable RoutineEvent history; keep postponed_until separate from due_on and retain a monthly anchor day.
 5. Should shopping purchase history be retained indefinitely or summarized?
 6. [Resolved PR6 baseline] Re-evaluate Today priority only after real meal-plan signals exist.

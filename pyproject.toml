@@ -16,7 +16,7 @@ line-ending = "lf"
 
 [tool.coverage.run]
 branch = true
-source = ["blog", "home", "search", "mysite"]
+source = ["blog", "content", "home", "household", "recipes", "search", "mysite"]
 omit = [
     "*/migrations/*",
     "mysite/settings/*",

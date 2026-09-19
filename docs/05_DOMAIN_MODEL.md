@@ -175,33 +175,54 @@ Do not add arbitrary cron/RRULE UI until justified.
 
 ## Recipes
 
-Recipe is Wagtail editorial content.
+Implemented in PR8 as Wagtail editorial content.
 
-Structured fields should support:
-- title;
-- intro;
-- hero image;
-- prep/cook/total time;
+RecipePage stores:
+- title / intro;
+- optional hero image + context-specific alt text;
+- prep minutes;
+- cook minutes;
 - servings;
 - difficulty;
 - tags;
-- ingredients;
-- instructions;
-- optional tips/storage/substitutions;
-- searchable text.
+- structured ingredient rows;
+- curated instruction StreamField;
+- searchable ingredient-name text.
+
+`total_minutes` is derived from prep + cook time rather than persisted.
 
 ### Ingredient line
 
-Prefer structured ingredient references plus display amount rather than opaque prose when pantry reconciliation is required.
+RecipeIngredient is an `Orderable` inline relation so editors can manage structured rows inside the RecipePage editing experience.
 
-Potential shape:
-- Ingredient reference;
+Fields:
+- canonical Ingredient reference;
 - numeric amount optional;
 - unit optional;
 - preparation note optional;
 - optional flag.
 
-Do not block editorial usefulness on perfect nutritional ontology.
+Supported structured units:
+- item;
+- g / kg;
+- ml / l;
+- tsp / tbsp;
+- cup.
+
+### Recipe invariants
+
+1. Recipe ingredient quantities are either:
+   - unspecified with no unit; or
+   - positive numeric amount + explicit unit.
+2. One canonical Ingredient can appear at most once per recipe.
+3. Repeated-stage use should use a note such as "divided" rather than duplicate ingredient rows.
+4. Ingredient rows are editorial source data, not parsed from prose.
+5. Total time is derived, not duplicated state.
+6. Recipe pages are leaf pages under a Recipe library.
+7. Hero images require context-specific alt text in the recipe model.
+8. Ingredient names are indexed as recipe search text through a deterministic callable.
+
+The one-ingredient-per-recipe constraint is deliberately an MVP simplification that makes PR9 reconciliation deterministic.
 
 ## Ingredient identity
 
