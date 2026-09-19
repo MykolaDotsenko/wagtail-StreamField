@@ -5,6 +5,13 @@
             <span>Today</span>
         </a>
 
+        {% if request.user.is_authenticated %}
+            <a class="mobile-nav__item"{% if request.resolver_match.namespace == "household" and request.resolver_match.url_name == "shopping" %} aria-current="page"{% endif %} href="{% url 'household:shopping' %}">
+                <span class="mobile-nav__icon" aria-hidden="true">✓</span>
+                <span>Shopping</span>
+            </a>
+        {% endif %}
+
         <a class="mobile-nav__item"{% if request.resolver_match.url_name == "search" %} aria-current="page"{% endif %} href="{% url 'search' %}">
             <span class="mobile-nav__icon" aria-hidden="true">⌕</span>
             <span>Discover</span>

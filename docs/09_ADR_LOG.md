@@ -166,3 +166,52 @@ Positive:
 
 Negative:
 - recipe reconciliation must safely handle unknown/approximate sufficiency.
+
+
+---
+
+## ADR-006 — Shopping uses conservative normalized identity and database-enforced active uniqueness
+
+Status: Accepted
+Date: 2026-09-19
+
+### Context
+
+Quick Add must be faster than maintaining a manual note, but naive repeated submissions can create duplicate active shopping rows. Future recipe integration also needs a stable, deterministic way to find an already-open shopping demand.
+
+### Decision
+
+For the MVP, ShoppingItem identity is normalized with Unicode NFKC, whitespace collapse and case folding.
+
+The database enforces at most one non-deleted `OPEN` item per user + normalized identity through a conditional unique constraint.
+
+Equivalent additions merge quantity. We do not use fuzzy matching, embeddings or probabilistic entity resolution.
+
+Removal is separate from completion. Remove first sets `deleted_at` so the immediate UI can offer a POST-based Undo. If Undo would collide with a newer equivalent open item, quantities are merged and the obsolete tombstone is deleted.
+
+### Alternatives considered
+
+1. Allow duplicates and leave cleanup to the user.
+2. Case-insensitive matching only in view code.
+3. Fuzzy/AI matching for item names.
+4. Hard-delete immediately with no Undo.
+
+### Consequences
+
+Positive:
+- deterministic behavior;
+- retry-friendly Quick Add;
+- database protection against conflicting active state;
+- reversible common actions;
+- future recipe integration has a stable command path.
+
+Negative:
+- "milk" and "2% milk" remain distinct until a canonical Ingredient model exists;
+- unit-aware merging is deferred;
+- soft deletion introduces tombstones that later retention work may clean up.
+
+### References
+
+- `docs/02_UX_RESEARCH_AND_FLOWS.md`
+- `docs/05_DOMAIN_MODEL.md`
+- `docs/04_ARCHITECTURE.md`
