@@ -1,0 +1,146 @@
+{% extends "base.html" %}
+
+{% block title %}Home rhythm{% endblock %}
+{% block body_class %}template-routines{% endblock %}
+
+{% block content %}
+<section class="page-heading page-heading--compact" aria-labelledby="routines-title">
+    <p class="eyebrow">Home</p>
+    <h1 id="routines-title">Home rhythm</h1>
+    <p class="lede">
+        Keep recurring home work visible without turning your home into a project board.
+        {% if snapshot.total_active %}{{ snapshot.total_active }} active routine{{ snapshot.total_active|pluralize }}.{% endif %}
+    </p>
+</section>
+
+<section class="quick-add-card" aria-labelledby="routine-add-title">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Add rhythm</p>
+            <h2 id="routine-add-title">What should repeat?</h2>
+        </div>
+    </div>
+
+    <form method="post" class="quick-add-form" novalidate>
+        {% csrf_token %}
+        {% include "household/_routine_form_fields.html" %}
+        <div class="cluster">
+            <button class="button button--primary" type="submit">Add routine</button>
+        </div>
+    </form>
+</section>
+
+<section class="routine-section" aria-labelledby="routine-due-title">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Act now</p>
+            <h2 id="routine-due-title">Due now</h2>
+        </div>
+        <span class="meta-text">{{ snapshot.due_items|length }}</span>
+    </div>
+
+    {% if snapshot.due_items %}
+        <div class="routine-list">
+            {% for entry in snapshot.due_items %}
+                <article class="routine-card">
+                    <div class="routine-card__content">
+                        <div class="cluster routine-card__statuses">
+                            {% if entry.is_overdue %}
+                                <span class="status-badge status-badge--danger">Overdue</span>
+                            {% elif entry.is_due_today %}
+                                <span class="status-badge status-badge--attention">Today</span>
+                            {% endif %}
+                            {% if entry.is_postponed %}
+                                <span class="status-badge">Postponed</span>
+                            {% endif %}
+                        </div>
+
+                        <h3>{{ entry.routine.title }}</h3>
+                        <p class="meta-text">
+                            {{ entry.routine.get_room_display }}
+                            · {{ entry.routine.get_frequency_display }}
+                            · due {{ entry.effective_due_on|date:"M j, Y" }}
+                            {% if entry.routine.expected_duration_minutes %}
+                                · ~{{ entry.routine.expected_duration_minutes }} min
+                            {% endif %}
+                        </p>
+                    </div>
+
+                    <div class="routine-actions">
+                        <form method="post" action="{% url 'household:complete_routine' entry.routine.pk %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="scheduled_for" value="{{ entry.routine.due_on|date:'Y-m-d' }}">
+                            <button class="button button--primary button--compact" type="submit">Done</button>
+                        </form>
+
+                        <form method="post" action="{% url 'household:skip_routine' entry.routine.pk %}">
+                            {% csrf_token %}
+                            <input type="hidden" name="scheduled_for" value="{{ entry.routine.due_on|date:'Y-m-d' }}">
+                            <button class="button button--secondary button--compact" type="submit">Skip</button>
+                        </form>
+
+                        <details class="routine-postpone">
+                            <summary class="button button--ghost button--compact">Postpone</summary>
+                            <form class="routine-postpone__form" method="post" action="{% url 'household:postpone_routine' entry.routine.pk %}">
+                                {% csrf_token %}
+                                <input type="hidden" name="scheduled_for" value="{{ entry.routine.due_on|date:'Y-m-d' }}">
+                                <input type="hidden" name="expected_effective_due_on" value="{{ entry.effective_due_on|date:'Y-m-d' }}">
+                                <label class="field__label" for="postpone-{{ entry.routine.pk }}">Move to</label>
+                                <input class="field__control" id="postpone-{{ entry.routine.pk }}" name="postponed_to" type="date" required>
+                                <button class="button button--primary button--compact" type="submit">Move routine</button>
+                            </form>
+                        </details>
+
+                        <a class="button button--ghost button--compact" href="{% url 'household:edit_routine' entry.routine.pk %}">Edit</a>
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+    {% else %}
+        <section class="empty-state empty-state--compact" aria-labelledby="routine-clear-title">
+            <div class="empty-state__icon" aria-hidden="true">✓</div>
+            <div>
+                <h3 id="routine-clear-title">Nothing is due right now</h3>
+                <p>Upcoming routines stay below so today remains calm.</p>
+            </div>
+        </section>
+    {% endif %}
+</section>
+
+<section class="routine-section" aria-labelledby="routine-upcoming-title">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Later</p>
+            <h2 id="routine-upcoming-title">Upcoming</h2>
+        </div>
+        <span class="meta-text">{{ snapshot.upcoming_items|length }}</span>
+    </div>
+
+    {% if snapshot.upcoming_items %}
+        <ul class="item-list">
+            {% for entry in snapshot.upcoming_items %}
+                <li class="item-row">
+                    <span class="item-row__body">
+                        <strong>{{ entry.routine.title }}</strong>
+                        <span>
+                            {{ entry.routine.get_room_display }}
+                            · {{ entry.routine.get_frequency_display }}
+                            · {{ entry.effective_due_on|date:"M j, Y" }}
+                            {% if entry.is_postponed %}· Postponed{% endif %}
+                        </span>
+                    </span>
+                    <a class="button button--ghost button--compact" href="{% url 'household:edit_routine' entry.routine.pk %}">Edit</a>
+                </li>
+            {% endfor %}
+        </ul>
+    {% elif not snapshot.due_items %}
+        <section class="empty-state" aria-labelledby="routine-empty-title">
+            <div class="empty-state__icon" aria-hidden="true">↻</div>
+            <div>
+                <h3 id="routine-empty-title">Build a light home rhythm</h3>
+                <p>Add only recurring work you genuinely want help remembering.</p>
+            </div>
+        </section>
+    {% endif %}
+</section>
+{% endblock %}
