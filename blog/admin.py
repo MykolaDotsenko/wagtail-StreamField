@@ -1,3 +1,1 @@
-from django.contrib import admin
-
-# Register your models here.
+"""Django admin customisations are intentionally handled through Wagtail snippets and pages."""

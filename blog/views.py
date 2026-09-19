@@ -1,3 +1,1 @@
-from django.shortcuts import render
-
-# Create your views here.
+"""Wagtail page models own the public content views for this app."""
