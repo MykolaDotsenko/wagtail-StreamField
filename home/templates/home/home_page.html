@@ -1,11 +1,71 @@
 {% extends "base.html" %}
-
-<!-- load wagtailcore_tags by adding this: -->
 {% load wagtailcore_tags %}
 
 {% block body_class %}template-homepage{% endblock %}
 
-<!-- replace everything below with: -->
 {% block content %}
-    {{ page.body|richtext }}
+<section class="page-heading" aria-labelledby="home-title">
+    <p class="eyebrow">Today</p>
+    <h1 id="home-title">Less to remember. More room to live.</h1>
+    <p class="lede">
+        DomoNest is a calm household workspace designed to turn scattered home planning
+        into a small number of useful next actions.
+    </p>
+</section>
+
+<div class="workspace-grid">
+    <section class="attention-card" aria-labelledby="attention-title">
+        <div class="cluster cluster--spread">
+            <span class="status-badge status-badge--calm">Ready for your home</span>
+            <span class="meta-text">Today</span>
+        </div>
+
+        <div class="empty-state empty-state--compact">
+            <div class="empty-state__icon" aria-hidden="true">✓</div>
+            <div>
+                <h2 id="attention-title">Nothing needs your attention yet</h2>
+                <p>
+                    As shopping, pantry, meals and routines are connected, the most useful
+                    next actions will surface here instead of competing for your attention.
+                </p>
+            </div>
+            <a class="button button--primary" href="{% url 'search' %}">Explore home knowledge</a>
+        </div>
+    </section>
+
+    <aside class="surface-panel" aria-labelledby="connected-title">
+        <p class="eyebrow">Designed as one system</p>
+        <h2 id="connected-title">Connected workflows, not isolated lists</h2>
+        <ul class="item-list item-list--quiet">
+            <li class="item-row">
+                <span class="item-row__marker" aria-hidden="true">1</span>
+                <span class="item-row__body">
+                    <strong>Plan what matters</strong>
+                    <span>Today will prioritize a short set of actionable signals.</span>
+                </span>
+            </li>
+            <li class="item-row">
+                <span class="item-row__marker" aria-hidden="true">2</span>
+                <span class="item-row__body">
+                    <strong>Reuse what you know</strong>
+                    <span>Recipes and guides will connect directly to household actions.</span>
+                </span>
+            </li>
+            <li class="item-row">
+                <span class="item-row__marker" aria-hidden="true">3</span>
+                <span class="item-row__body">
+                    <strong>Keep maintenance light</strong>
+                    <span>The product asks only for information that improves the next decision.</span>
+                </span>
+            </li>
+        </ul>
+    </aside>
+</div>
+
+{% if page.body %}
+<section class="prose-section" aria-labelledby="home-notes-title">
+    <h2 id="home-notes-title">Home notes</h2>
+    <div class="prose">{{ page.body|richtext }}</div>
+</section>
+{% endif %}
 {% endblock %}
