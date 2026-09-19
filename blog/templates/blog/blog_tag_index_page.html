@@ -1,21 +1,34 @@
 {% extends "base.html" %}
 {% load wagtailcore_tags %}
 
+{% block title %}Topic{% if request.GET.tag %}: {{ request.GET.tag }}{% endif %}{% endblock %}
+
 {% block content %}
+<section class="page-heading page-heading--compact">
+    <p class="eyebrow">Topic</p>
+    <h1>{% if request.GET.tag %}{{ request.GET.tag }}{% else %}Home knowledge{% endif %}</h1>
+</section>
 
-    {% if request.GET.tag %}
-        <h4>Showing pages tagged "{{ request.GET.tag }}"</h4>
-    {% endif %}
-
-    {% for blogpage in blogpages %}
-
-          <p>
-              <strong><a href="{% pageurl blogpage %}">{{ blogpage.title }}</a></strong><br />
-              <small>Revised: {{ blogpage.latest_revision_created_at }}</small><br />
-          </p>
-
-    {% empty %}
-        No pages found with that tag.
-    {% endfor %}
-
+{% if blogpages %}
+    <ul class="item-list">
+        {% for blogpage in blogpages %}
+            <li class="item-row item-row--link">
+                <span class="item-row__body">
+                    <a class="item-row__title" href="{% pageurl blogpage %}">{{ blogpage.title }}</a>
+                    <span>Updated {{ blogpage.latest_revision_created_at|date:"F j, Y" }}</span>
+                </span>
+                <span class="item-row__arrow" aria-hidden="true">→</span>
+            </li>
+        {% endfor %}
+    </ul>
+{% else %}
+    <section class="empty-state" aria-labelledby="topic-empty-title">
+        <div class="empty-state__icon" aria-hidden="true">?</div>
+        <div>
+            <h2 id="topic-empty-title">Nothing published under this topic yet</h2>
+            <p>Try Discover to search the full knowledge base.</p>
+        </div>
+        <a class="button button--primary" href="{% url 'search' %}">Open Discover</a>
+    </section>
+{% endif %}
 {% endblock %}
