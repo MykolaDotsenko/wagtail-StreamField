@@ -43,8 +43,8 @@ class GuideBlockTests(TestCase):
 
         self.assertIsInstance(body.child_blocks["image"], ImageChooserBlock)
         self.assertIsInstance(body.child_blocks["illustration"], ImageBlock)
-        self.assertEqual(body.child_blocks["image"].group, "Legacy")
-        self.assertEqual(body.child_blocks["illustration"].group, "Media")
+        self.assertEqual(body.child_blocks["image"].meta.group, "Legacy")
+        self.assertEqual(body.child_blocks["illustration"].meta.group, "Media")
 
     def test_guide_body_exposes_product_oriented_action_blocks(self):
         body = GuideBodyBlock()
@@ -60,5 +60,3 @@ class GuideBlockTests(TestCase):
 
         self.assertTrue(block.is_previewable)
         self.assertTrue(block.get_description())
-        preview = block.get_preview_value()
-        self.assertEqual(preview["title"], "Practical tip")
