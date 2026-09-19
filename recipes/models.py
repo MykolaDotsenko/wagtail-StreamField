@@ -201,6 +201,16 @@ class RecipePage(Page):
             )
         )
 
+    def get_context(self, request):
+        context = super().get_context(request)
+        if request.user.is_authenticated:
+            from household.recipe_reconciliation import recipe_readiness
+
+            context["readiness"] = recipe_readiness(recipe=self, user=request.user)
+        else:
+            context["readiness"] = None
+        return context
+
     def clean(self):
         super().clean()
         if self.hero_image_id and not self.hero_alt_text.strip():
