@@ -1,60 +1,101 @@
 # DomoNest
 
-**DomoNest** is a production-minded Django + Wagtail household operating system designed to reduce everyday mental load.
+**A production-minded Django + Wagtail household operating system that turns everyday home maintenance into a small set of useful next actions.**
 
-> Less to remember. More room to live.
+> **Less to remember. More room to live.**
 
-It started as a small Wagtail StreamField exercise and is now a cohesive portfolio case study built around connected household workflows rather than isolated CRUD screens.
+DomoNest started as a Wagtail StreamField exercise and evolved into a connected portfolio product: meal planning understands Pantry readiness, missing recipe ingredients become Shopping demand, recurring household work advances deterministically, and Today composes the most useful actions without duplicating domain state.
 
-## What it demonstrates
+![DomoNest Today dashboard](./docs/images/domonest-today.png)
+
+> Screenshot generated from the real Django/Wagtail application with deterministic demo data in Chromium — not a design mockup.
+
+## Why this project is different
+
+Many portfolio apps stop at independent CRUD screens. DomoNest is built around **cross-domain workflows and explicit invariants**:
 
 ```text
 Recipe → Pantry readiness → Missing / low ingredients → Shopping
 Recipe → Plan dinner → Today
 Pantry low stock → Shopping
 Routine → Complete / skip / postpone → Next recurrence
-Discover → Public knowledge + owner-scoped private state
+Discover → Public Wagtail knowledge + owner-scoped private household state
 ```
 
-### Product surfaces
+The product goal is simple: **reduce household mental load without making the user maintain another complicated system.**
 
-- **Today** — deterministic next-action feed, not a vanity dashboard.
-- **Plan** — one dinner per day with Pantry-aware recipe readiness.
-- **Shopping** — mobile-first Quick Add, category grouping, buy/reopen, Shopping mode and Undo.
-- **Pantry** — low-maintenance approximate or precise stock tracking with expiry attention.
-- **Home Rhythm** — recurring routines with immutable completion/skip/postpone history.
-- **Recipes** — structured Wagtail recipe authoring with canonical ingredients.
-- **Guides** — constrained actionable Wagtail content blocks.
-- **Discover** — grouped public search plus clearly separated owner-scoped private search.
+## Product surfaces
+
+| Surface | What it does | Engineering signal |
+| --- | --- | --- |
+| **Today** | Deterministic next-best-action feed | Derived read model; no duplicated dashboard state |
+| **Plan** | One dinner per day with recipe readiness | Date-scoped planning + Pantry-aware reconciliation |
+| **Shopping** | Quick Add, grouping, buy/reopen, Undo, focused Shopping mode | DB invariants, idempotent writes, owner-scoped mutations |
+| **Pantry** | Approximate or precise stock with expiry attention | Low-maintenance domain model + derived attention states |
+| **Home Rhythm** | Recurring household routines | Immutable event history + deterministic recurrence |
+| **Recipes** | Structured editorial recipes | Wagtail Page + snippets + relational ingredients |
+| **Guides** | Actionable household knowledge | Constrained StreamField authoring system |
+| **Discover** | Public knowledge + private household search | Explicit public/private search boundary |
+
+## Architecture at a glance
+
+DomoNest deliberately separates editorial content from private transactional state:
+
+- **Wagtail** owns public pages, publishing, snippets and structured authoring.
+- **Django domain models + services** own private household state and write invariants.
+- **Selectors / read models** compose Today, Plan, recipe readiness and Discover.
+- **Views** orchestrate authentication, forms, services and responses.
+- **Templates** render already-understood state; they do not contain business rules.
+- **Database constraints** protect invariants that must survive UI or retry failures.
+
+Key decisions include:
+
+- conservative normalized identity instead of fuzzy/AI matching;
+- explicit `AVAILABLE / LOW / MISSING / UNKNOWN` recipe readiness;
+- idempotent Recipe/Pantry → Shopping writes;
+- owner scoping at query time;
+- immutable Routine event history;
+- public Wagtail search kept separate from private household queries;
+- server-rendered UI with progressive enhancement rather than SPA complexity.
 
 ## Stack
 
-- Python 3.12–3.14
-- Django 5.2.17
-- Wagtail 7.4.3
-- PostgreSQL production target; SQLite for zero-setup development
-- Gunicorn
-- WhiteNoise for fingerprinted static assets
-- Server-rendered HTML/CSS with progressive enhancement
-- Playwright + Chromium browser E2E
-- Axe WCAG 2.2 AA automated smoke checks
-- Ruff, Coverage and pip-audit
+- **Python 3.12–3.14**
+- **Django 5.2.17**
+- **Wagtail 7.4.3**
+- **PostgreSQL** production/integration target
+- SQLite for zero-setup local development
+- **Gunicorn**
+- **WhiteNoise** with fingerprinted production static assets
+- Server-rendered HTML + CSS
+- **Playwright + Chromium**
+- **Axe WCAG 2.2 AA** automated browser checks
+- **Ruff**, Coverage and `pip-audit`
 
-No SPA framework, AI layer or search cluster is added without a product requirement.
+No SPA framework, AI layer or search cluster is added unless a product requirement justifies the operational cost.
 
-## Architecture
+## Quality evidence
 
-DomoNest deliberately separates responsibilities:
+CI verifies the repository across multiple layers:
 
-- **Wagtail** owns public/editorial content, publishing, snippets and structured authoring.
-- **Django domain models/services** own private transactional household state and invariants.
-- **Selectors/read models** compose Today, Plan, readiness and Discover state.
-- **Views** orchestrate authentication, forms, services and response rendering.
-- **Templates** render already-understood state; they do not contain domain rules.
+- Python **3.12 / 3.13 / 3.14**;
+- Ruff lint + formatting;
+- Django/Wagtail system checks;
+- migration drift;
+- clean database migrations;
+- branch coverage threshold;
+- full PostgreSQL integration suite;
+- production `check --deploy`;
+- production `collectstatic`;
+- Python dependency audit;
+- Chromium golden journey;
+- Axe accessibility checks;
+- cross-module workflow regression scenarios;
+- query-budget regressions for high-value read models.
 
-Important properties include owner-scoped private queries, database constraints, idempotent Recipe → Shopping writes, conservative ingredient reconciliation and derived—not duplicated—readiness state.
+Browser CI publishes Playwright evidence including desktop/mobile screenshots, traces and failure artifacts.
 
-## Run locally
+## Run the exact demo locally
 
 Create a virtual environment, then:
 
@@ -65,7 +106,11 @@ python manage.py seed_demo --reset --username demo --password domonest-demo
 python manage.py runserver
 ```
 
-Open `http://127.0.0.1:8000/`.
+Open:
+
+```text
+http://127.0.0.1:8000/
+```
 
 Demo account:
 
@@ -74,27 +119,31 @@ username: demo
 password: domonest-demo
 ```
 
-The demo password is intentionally local-only. Do not reuse it for a deployed environment.
+The demo password is intentionally local-only. Do not reuse it in a deployed environment.
 
-## Quality gates
+### Re-render the README screenshot
 
-CI verifies:
+After installing browser dependencies:
 
-- Python 3.12 / 3.13 / 3.14;
-- Ruff lint + formatting;
-- Django/Wagtail system checks;
-- migration drift;
-- clean migrations;
-- branch coverage threshold;
-- full PostgreSQL integration tests;
-- production `check --deploy`;
-- production `collectstatic`;
-- Python dependency audit;
-- Chromium golden journey;
-- Axe accessibility checks;
-- query-budget regressions for high-value read models.
+```bash
+npm install --no-audit --no-fund
+npx playwright install chromium
+python manage.py migrate
+python manage.py seed_demo --reset --username demo --password domonest-demo
+python manage.py runserver 127.0.0.1:8000 --noreload
+```
 
-Browser runs publish Playwright report, traces/failure screenshots and portfolio-oriented screenshots as the **domonest-browser-evidence** workflow artifact.
+In another terminal:
+
+```bash
+node scripts/capture-readme-screenshot.mjs
+```
+
+The script writes the real rendered UI to:
+
+```text
+docs/images/domonest-today.png
+```
 
 ## Production baseline
 
@@ -107,19 +156,19 @@ python manage.py collectstatic --noinput
 gunicorn mysite.wsgi:application --bind 0.0.0.0:${PORT:-8000}
 ```
 
-Read the full [deployment runbook](./docs/11_DEPLOYMENT_RUNBOOK.md).
-
 Health/readiness endpoint:
 
 ```text
 GET /health/
 ```
 
+See the full [deployment runbook](./docs/11_DEPLOYMENT_RUNBOOK.md).
+
 ## Engineering handbook
 
-Start with **[docs/00_INDEX.md](./docs/00_INDEX.md)**.
+The repository keeps product and engineering decisions explicit instead of hiding them in implementation history.
 
-Key documents:
+Start with **[docs/00_INDEX.md](./docs/00_INDEX.md)**.
 
 - [Product specification](./docs/01_PRODUCT_SPEC.md)
 - [UX research and flows](./docs/02_UX_RESEARCH_AND_FLOWS.md)
@@ -135,19 +184,20 @@ Key documents:
 
 ## Delivery history
 
-The product was rebuilt as bounded vertical slices:
+DomoNest was rebuilt as bounded vertical slices:
 
-1. foundation and CI;
-2. design system / app shell;
+1. foundation + CI;
+2. design system + app shell;
 3. Shopping;
 4. Pantry;
 5. recurring Home Rhythm;
-6. Today;
+6. Today orchestration;
 7. Wagtail content architecture;
 8. Recipe domain;
 9. Recipe → Pantry → Shopping;
 10. dinner planning;
-11. Discover/search;
-12. production hardening.
+11. privacy-safe Discover/search;
+12. production hardening;
+13. cross-module browser regression scenarios.
 
-See the roadmap for detailed acceptance criteria and rationale.
+Each slice was designed around product value, domain invariants, accessibility and testability rather than feature count.
