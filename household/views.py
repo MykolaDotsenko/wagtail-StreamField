@@ -8,6 +8,7 @@ from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
+from recipes.models import RecipePage
 
 from .forms import (
     PantryItemForm,
@@ -16,9 +17,9 @@ from .forms import (
     RoutinePostponeForm,
     ShoppingItemCreateForm,
 )
-from recipes.models import RecipePage
 
 from .models import PantryItem, Routine, ShoppingItem
+from .recipe_reconciliation import add_needed_recipe_ingredients
 from .selectors import (
     deleted_shopping_item_for_undo,
     pantry_snapshot,
@@ -26,7 +27,6 @@ from .selectors import (
     shopping_snapshot,
     today_snapshot,
 )
-from .recipe_reconciliation import add_needed_recipe_ingredients
 from .services import (
     StaleRoutineAction,
     add_pantry_item_to_shopping,
