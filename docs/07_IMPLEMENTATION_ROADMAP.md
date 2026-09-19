@@ -86,6 +86,8 @@ Acceptance:
 
 ## PR 4 — Pantry vertical slice
 
+Status: implemented on `pr/04-pantry-vertical-slice`; final acceptance depends on CI.
+
 Goal:
 Surface low-stock/use-soon value without inventory burden.
 
