@@ -110,15 +110,11 @@ class PantryViewTests(TestCase):
         item = PantryItem.objects.create(user=self.user, name="Rice")
 
         self.assertEqual(
-            self.client.get(
-                reverse("household:remove_pantry_item", args=[item.pk])
-            ).status_code,
+            self.client.get(reverse("household:remove_pantry_item", args=[item.pk])).status_code,
             405,
         )
         self.assertEqual(
-            self.client.get(
-                reverse("household:pantry_to_shopping", args=[item.pk])
-            ).status_code,
+            self.client.get(reverse("household:pantry_to_shopping", args=[item.pk])).status_code,
             405,
         )
 
