@@ -83,12 +83,15 @@ Entry:
 - primary app route;
 - optional home-screen/bookmark entry.
 
-Priority order:
-1. urgent/use-soon;
-2. due routines;
-3. unresolved shopping need;
-4. unplanned meal;
-5. one useful suggestion.
+PR6 deterministic priority:
+1. overdue routine;
+2. expired pantry item;
+3. routine due today;
+4. pantry use-soon;
+5. pantry low stock;
+6. active shopping summary.
+
+The visible feed is capped at six actions. Meal planning remains a neutral placeholder until the meal domain exists.
 
 Do not show more than the user can act on. A "View all" path is preferable to a dense wall.
 
