@@ -50,11 +50,13 @@ class PantryItemForm(forms.Form):
     category = forms.ChoiceField(
         choices=ShoppingItem.Category.choices,
         initial=ShoppingItem.Category.OTHER,
+        required=False,
         label="Category",
     )
     quantity_mode = forms.ChoiceField(
         choices=PantryItem.QuantityMode.choices,
         initial=PantryItem.QuantityMode.APPROXIMATE,
+        required=False,
         label="Tracking style",
     )
     approximate_level = forms.ChoiceField(
@@ -106,9 +108,16 @@ class PantryItemForm(forms.Form):
             raise forms.ValidationError("This item is already in your pantry.")
         return name
 
+    def clean_category(self):
+        return self.cleaned_data.get("category") or ShoppingItem.Category.OTHER
+
+    def clean_quantity_mode(self):
+        return self.cleaned_data.get("quantity_mode") or PantryItem.QuantityMode.APPROXIMATE
+
     def clean(self):
         cleaned = super().clean()
-        mode = cleaned.get("quantity_mode")
+        mode = cleaned.get("quantity_mode") or PantryItem.QuantityMode.APPROXIMATE
+        cleaned["quantity_mode"] = mode
 
         if mode == PantryItem.QuantityMode.APPROXIMATE:
             cleaned["approximate_level"] = (
