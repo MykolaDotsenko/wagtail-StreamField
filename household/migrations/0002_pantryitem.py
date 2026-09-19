@@ -120,43 +120,36 @@ class Migration(migrations.Migration):
                 ],
                 "constraints": [
                     models.CheckConstraint(
-                        condition=models.Q(("normalized_name", ""), _negated=True),
+                        condition=~models.Q(normalized_name=""),
                         name="pantry_name_not_empty",
                     ),
                     models.CheckConstraint(
-                        condition=models.Q(
-                            ("amount__isnull", True),
-                            ("amount__gte", 0),
-                            _connector="OR",
-                        ),
+                        condition=models.Q(amount__isnull=True)
+                        | models.Q(amount__gte=0),
                         name="pantry_amount_non_negative",
                     ),
                     models.CheckConstraint(
-                        condition=models.Q(
-                            ("low_stock_threshold__isnull", True),
-                            ("low_stock_threshold__gte", 0),
-                            _connector="OR",
-                        ),
+                        condition=models.Q(low_stock_threshold__isnull=True)
+                        | models.Q(low_stock_threshold__gte=0),
                         name="pantry_threshold_non_negative",
                     ),
                     models.CheckConstraint(
-                        condition=models.Q(
+                        condition=(
                             models.Q(
-                                ("amount__isnull", True),
-                                ("approximate_level__in", ["full", "half", "low"]),
-                                ("low_stock_threshold__isnull", True),
-                                ("quantity_mode", "approximate"),
-                                ("unit", ""),
-                            ),
-                            models.Q(
+                                quantity_mode="approximate",
+                                amount__isnull=True,
+                                unit="",
+                                low_stock_threshold__isnull=True,
+                                approximate_level__in=["full", "half", "low"],
+                            )
+                            | (
                                 models.Q(
-                                    ("amount__isnull", False),
-                                    ("approximate_level", ""),
-                                    ("quantity_mode", "precise"),
-                                ),
-                                models.Q(("unit", ""), _negated=True),
-                            ),
-                            _connector="OR",
+                                    quantity_mode="precise",
+                                    amount__isnull=False,
+                                    approximate_level="",
+                                )
+                                & ~models.Q(unit="")
+                            )
                         ),
                         name="pantry_quantity_mode_consistent",
                     ),
