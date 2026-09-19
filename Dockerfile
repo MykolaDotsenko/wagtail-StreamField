@@ -22,7 +22,10 @@ RUN python -m pip install --upgrade pip \
 
 COPY --chown=domonest:domonest . .
 
-RUN DJANGO_SETTINGS_MODULE=mysite.settings.dev \
+RUN DJANGO_SETTINGS_MODULE=mysite.settings.production \
+    DJANGO_SECRET_KEY=container-build-only-not-used-at-runtime \
+    DJANGO_ALLOWED_HOSTS=localhost \
+    WAGTAILADMIN_BASE_URL=http://localhost \
     python manage.py collectstatic --noinput --clear
 
 USER domonest
