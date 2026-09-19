@@ -1,0 +1,97 @@
+<div class="routine-primary-fields">
+    <div class="field">
+        <label class="field__label" for="routine-title">Routine</label>
+        <input
+            class="field__control{% if form.title.errors %} field__control--error{% endif %}"
+            id="routine-title"
+            name="{{ form.title.html_name }}"
+            type="text"
+            maxlength="120"
+            value="{{ form.title.value|default:'' }}"
+            placeholder="Clean the bathroom, water plants…"
+            required
+            {% if form.title.errors %}aria-invalid="true" aria-describedby="routine-title-errors" autofocus{% endif %}
+        >
+        {% if form.title.errors %}
+            <div class="field__error" id="routine-title-errors">
+                {% for error in form.title.errors %}<p>{{ error }}</p>{% endfor %}
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="field">
+        <label class="field__label" for="routine-due">Next due</label>
+        <input
+            class="field__control{% if form.due_on.errors %} field__control--error{% endif %}"
+            id="routine-due"
+            name="{{ form.due_on.html_name }}"
+            type="date"
+            value="{{ form.due_on.value|date:'Y-m-d'|default:form.due_on.value|default:'' }}"
+            required
+            {% if form.due_on.errors %}aria-invalid="true" aria-describedby="routine-due-errors"{% endif %}
+        >
+        {% if form.due_on.errors %}
+            <div class="field__error" id="routine-due-errors">
+                {% for error in form.due_on.errors %}<p>{{ error }}</p>{% endfor %}
+            </div>
+        {% endif %}
+    </div>
+
+    <div class="field">
+        <label class="field__label" for="routine-frequency">Repeat</label>
+        <select
+            class="field__control{% if form.frequency.errors %} field__control--error{% endif %}"
+            id="routine-frequency"
+            name="{{ form.frequency.html_name }}"
+            {% if form.frequency.errors %}aria-invalid="true" aria-describedby="routine-frequency-errors"{% endif %}
+        >
+            {% for value, label in form.fields.frequency.choices %}
+                <option value="{{ value }}"{% if form.frequency.value|default:"weekly" == value %} selected{% endif %}>{{ label }}</option>
+            {% endfor %}
+        </select>
+        {% if form.frequency.errors %}
+            <div class="field__error" id="routine-frequency-errors">
+                {% for error in form.frequency.errors %}<p>{{ error }}</p>{% endfor %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<details class="disclosure"{% if expanded or form.room.errors or form.expected_duration_minutes.errors %} open{% endif %}>
+    <summary>Area and duration</summary>
+    <div class="optional-fields">
+        <div class="field">
+            <label class="field__label" for="routine-room">Area</label>
+            <select
+                class="field__control{% if form.room.errors %} field__control--error{% endif %}"
+                id="routine-room"
+                name="{{ form.room.html_name }}"
+            >
+                {% for value, label in form.fields.room.choices %}
+                    <option value="{{ value }}"{% if form.room.value|default:"whole_home" == value %} selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div class="field">
+            <label class="field__label" for="routine-duration">Expected minutes</label>
+            <input
+                class="field__control{% if form.expected_duration_minutes.errors %} field__control--error{% endif %}"
+                id="routine-duration"
+                name="{{ form.expected_duration_minutes.html_name }}"
+                type="number"
+                min="1"
+                max="480"
+                inputmode="numeric"
+                value="{{ form.expected_duration_minutes.value|default:'' }}"
+                {% if form.expected_duration_minutes.errors %}aria-invalid="true" aria-describedby="routine-duration-errors"{% endif %}
+            >
+            <p class="field__help">Optional. Helps set realistic expectations.</p>
+            {% if form.expected_duration_minutes.errors %}
+                <div class="field__error" id="routine-duration-errors">
+                    {% for error in form.expected_duration_minutes.errors %}<p>{{ error }}</p>{% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</details>
