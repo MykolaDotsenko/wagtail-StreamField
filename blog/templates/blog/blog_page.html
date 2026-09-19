@@ -4,45 +4,69 @@
 {% block body_class %}template-blogpage{% endblock %}
 
 {% block content %}
-    <h1>{{ page.title }}</h1>
-    <p class="meta">{{ page.date }}</p>
+<article>
+    <header class="content-header">
+        <p class="eyebrow">Home knowledge</p>
+        <h1>{{ page.title }}</h1>
 
-    {% with authors=page.authors.all %}
-        {% if authors %}
-            <h3>Posted by:</h3>
-            <ul>
-                {% for author in authors %}
-                    <li style="display: inline">
-                        {% image author.author_image fill-40x60 style="vertical-align: middle" %}
-                        {{ author.name }}
-                    </li>
-                {% endfor %}
-            </ul>
-        {% endif %}
-    {% endwith %}
-
-    <div class="intro">{{ page.intro }}</div>
-    {% for block in page.body %}
-        {% include_block block %}
-    {% endfor %}
-
-    {% for item in page.gallery_images.all %}
-        <div style="float: inline-start; margin: 10px">
-            {% image item.image fill-320x240 %}
-            <p>{{ item.caption }}</p>
+        <div class="content-meta">
+            <time datetime="{{ page.date|date:'Y-m-d' }}">{{ page.date|date:"F j, Y" }}</time>
         </div>
-    {% endfor %}
 
-    <p><a href="{{ page.get_parent.url }}">Return to blog</a></p>
+        {% with authors=page.authors.all %}
+            {% if authors %}
+                <ul class="author-list" aria-label="Authors">
+                    {% for author in authors %}
+                        <li class="author-chip">
+                            {% if author.author_image %}
+                                {% image author.author_image fill-64x64 alt="" loading="lazy" %}
+                            {% endif %}
+                            <span>{{ author.name }}</span>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        {% endwith %}
+
+        {% if page.intro %}
+            <p class="lede">{{ page.intro }}</p>
+        {% endif %}
+    </header>
+
+    <div class="prose">
+        {% for block in page.body %}
+            {% include_block block %}
+        {% endfor %}
+    </div>
+
+    {% if page.gallery_images.all %}
+        <div class="gallery-grid" aria-label="Gallery">
+            {% for item in page.gallery_images.all %}
+                <figure class="gallery-item">
+                    {% image item.image fill-640x480 loading="lazy" %}
+                    {% if item.caption %}<figcaption>{{ item.caption }}</figcaption>{% endif %}
+                </figure>
+            {% endfor %}
+        </div>
+    {% endif %}
 
     {% with tags=page.tags.all %}
         {% if tags %}
-            <div class="tags">
-                <h3>Tags</h3>
-                {% for tag in tags %}
-                    <a href="{% slugurl 'tags' %}?tag={{ tag }}"><button type="button">{{ tag }}</button></a>
-                {% endfor %}
-            </div>
+            <section class="prose-section" aria-labelledby="tags-title">
+                <h2 id="tags-title">Topics</h2>
+                <ul class="tag-list">
+                    {% for tag in tags %}
+                        <li>
+                            <a class="tag-link" href="{% slugurl 'tags' %}?tag={{ tag|urlencode }}">{{ tag }}</a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </section>
         {% endif %}
     {% endwith %}
+
+    <div class="prose-section">
+        <a class="button button--secondary" href="{{ page.get_parent.url }}">Back to knowledge</a>
+    </div>
+</article>
 {% endblock %}
