@@ -3,18 +3,22 @@ set -Eeuo pipefail
 
 export DJANGO_SETTINGS_MODULE="${DJANGO_SETTINGS_MODULE:-mysite.settings.production}"
 
-echo "==> Validating Django production configuration"
-python manage.py check --deploy
-
-echo "==> Applying database migrations"
-python manage.py migrate --noinput
-
 is_truthy() {
   case "${1:-}" in
     1|true|TRUE|True|yes|YES|Yes|on|ON|On) return 0 ;;
     *) return 1 ;;
   esac
 }
+
+echo "==> Validating Django production configuration"
+python manage.py check --deploy
+
+if is_truthy "${DOMONEST_RUN_MIGRATIONS_ON_START:-true}"; then
+  echo "==> Applying database migrations"
+  python manage.py migrate --noinput
+else
+  echo "==> Skipping startup migrations; deployment platform owns the release step"
+fi
 
 if is_truthy "${DOMONEST_AUTO_SEED_DEMO:-false}"; then
   demo_username="${DOMONEST_DEMO_USERNAME:-demo}"
