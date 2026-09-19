@@ -292,7 +292,7 @@ def pantry_to_shopping(request, item_id):
     else:
         messages.success(
             request,
-            f"{result.item.name} was already on Shopping — quantity updated.",
+            f"{result.item.name} is already on Shopping.",
         )
     return redirect("household:pantry")
 
