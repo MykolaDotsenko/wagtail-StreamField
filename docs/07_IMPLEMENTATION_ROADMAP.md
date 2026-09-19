@@ -62,6 +62,8 @@ Acceptance:
 
 ## PR 3 — Shopping vertical slice
 
+Status: implemented on `pr/03-shopping-vertical-slice`; final acceptance depends on CI.
+
 Goal:
 Deliver the first complete high-frequency workflow.
 
