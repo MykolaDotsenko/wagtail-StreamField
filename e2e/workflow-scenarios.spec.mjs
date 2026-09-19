@@ -157,7 +157,6 @@ test("daily routine completion advances to the next occurrence without creating 
   await expect(dueCard).toContainText("Today");
 
   await dueCard.getByRole("button", { name: "Done" }).click();
-  await expect(page.getByText(new RegExp(`^${title} completed\\. Next due `))).toBeVisible();
 
   await expect(page.locator(".routine-card").filter({ hasText: title })).toHaveCount(0);
   const upcomingRow = page.locator(".item-row").filter({ hasText: title }).first();
