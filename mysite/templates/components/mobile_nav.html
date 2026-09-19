@@ -10,6 +10,10 @@
                 <span class="mobile-nav__icon" aria-hidden="true">✓</span>
                 <span>Shopping</span>
             </a>
+            <a class="mobile-nav__item"{% if request.resolver_match.namespace == "household" and request.resolver_match.url_name == "pantry" %} aria-current="page"{% endif %} href="{% url 'household:pantry' %}">
+                <span class="mobile-nav__icon" aria-hidden="true">◌</span>
+                <span>Pantry</span>
+            </a>
         {% endif %}
 
         <a class="mobile-nav__item"{% if request.resolver_match.url_name == "search" %} aria-current="page"{% endif %} href="{% url 'search' %}">
