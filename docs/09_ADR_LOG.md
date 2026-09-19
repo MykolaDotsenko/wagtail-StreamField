@@ -149,6 +149,7 @@ Negative:
 ## ADR-005 — Pantry supports low-maintenance approximate quantities
 
 Status: Accepted
+Date: 2026-09-19
 
 ### Context
 
@@ -158,6 +159,10 @@ Exact inventory accounting creates too much user maintenance for many household 
 
 Support both precise quantities and approximate states (full/half/low).
 
+Approximate mode is the default Quick Add contract. It stores no fake numeric amount. Precise mode is opt-in and requires amount + unit. Expiry is optional, and missing expiry remains explicitly unknown.
+
+Pantry attention is derived at read time. Pantry → Shopping uses an idempotent ensure command rather than manual Quick Add semantics, so repeated clicks do not increase shopping quantity.
+
 ### Consequences
 
 Positive:
@@ -165,7 +170,12 @@ Positive:
 - more realistic household usage.
 
 Negative:
-- recipe reconciliation must safely handle unknown/approximate sufficiency.
+- recipe reconciliation must safely handle unknown/approximate sufficiency;
+- precise and approximate quantities require explicit branch logic in later reconciliation.
+
+References:
+- `docs/05_DOMAIN_MODEL.md`
+- `docs/02_UX_RESEARCH_AND_FLOWS.md`
 
 
 ---
