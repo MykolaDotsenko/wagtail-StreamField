@@ -126,9 +126,7 @@ def add_shopping_item(*, user, name: str, quantity: int = 1, category: str = AUT
     ShoppingItem.objects.filter(pk=item.pk).update(quantity=models.F("quantity") + quantity)
     item.refresh_from_db()
 
-    should_update_category = (
-        category != AUTO_CATEGORY and item.category != resolved_category
-    ) or (
+    should_update_category = (category != AUTO_CATEGORY and item.category != resolved_category) or (
         item.category == ShoppingItem.Category.OTHER
         and resolved_category != ShoppingItem.Category.OTHER
     )
