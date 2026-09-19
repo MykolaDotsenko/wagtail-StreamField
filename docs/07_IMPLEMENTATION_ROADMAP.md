@@ -250,6 +250,8 @@ Acceptance:
 
 ## PR 12 — Production hardening
 
+Status: implemented on `pr/12-production-hardening`; final acceptance depends on full CI.
+
 Scope:
 - PostgreSQL CI;
 - query optimization;
