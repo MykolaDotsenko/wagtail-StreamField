@@ -3,6 +3,7 @@ import os
 from .base import *
 
 DEBUG = False
+MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")
 SECRET_KEY = os.environ["DJANGO_SECRET_KEY"]
 ALLOWED_HOSTS = [host.strip() for host in os.getenv("DJANGO_ALLOWED_HOSTS", "").split(",") if host.strip()]
 CSRF_TRUSTED_ORIGINS = [

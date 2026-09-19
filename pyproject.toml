@@ -26,6 +26,7 @@ select = ["E4", "E7", "E9", "F", "I", "B", "UP", "SIM", "DJ"]
 [tool.coverage.run]
 branch = true
 source = ["blog", "home", "planner", "search"]
+omit = ["*/migrations/*"]
 
 [tool.coverage.report]
 show_missing = true
