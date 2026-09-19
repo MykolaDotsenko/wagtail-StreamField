@@ -399,9 +399,7 @@ def create_routine(*, user, data) -> Routine:
         room=data["room"],
         frequency=frequency,
         due_on=due_on,
-        recurrence_anchor_day=(
-            due_on.day if frequency == Routine.Frequency.MONTHLY else None
-        ),
+        recurrence_anchor_day=(due_on.day if frequency == Routine.Frequency.MONTHLY else None),
         expected_duration_minutes=data["expected_duration_minutes"],
     )
 
@@ -416,9 +414,7 @@ def update_routine(*, user, routine_id: int, data) -> Routine:
     routine.frequency = frequency
     routine.due_on = due_on
     routine.postponed_until = None
-    routine.recurrence_anchor_day = (
-        due_on.day if frequency == Routine.Frequency.MONTHLY else None
-    )
+    routine.recurrence_anchor_day = due_on.day if frequency == Routine.Frequency.MONTHLY else None
     routine.expected_duration_minutes = data["expected_duration_minutes"]
     routine.active = True
     routine.save()
