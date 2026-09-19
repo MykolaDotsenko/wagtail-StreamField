@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import ShoppingItem
+from .models import PantryItem, ShoppingItem
 from .services import AUTO_CATEGORY
 
 
