@@ -1535,8 +1535,8 @@
 
     .recipe-ingredient-list li {
         display: grid;
-        grid-template-columns: minmax(4.5rem, auto) minmax(0, 1fr) auto;
-        gap: var(--space-3);
+        grid-template-columns: minmax(4.5rem, auto) minmax(0, 1fr);
+        gap: var(--space-2) var(--space-3);
         align-items: start;
         padding-block: var(--space-3);
         border-bottom: 1px solid var(--color-border);
@@ -1557,9 +1557,29 @@
         gap: var(--space-1);
     }
 
-    .recipe-ingredient-list__name span {
+    .recipe-ingredient-list__name span,
+    .recipe-ingredient-list__name small {
         color: var(--color-text-muted);
         font-size: var(--step--1);
+    }
+
+    .recipe-ingredient-list__state {
+        display: flex;
+        grid-column: 2;
+        flex-wrap: wrap;
+        gap: var(--space-2);
+    }
+
+    .recipe-shopping-action {
+        display: grid;
+        gap: var(--space-3);
+        margin-top: var(--space-4);
+        padding-top: var(--space-4);
+        border-top: 1px solid var(--color-border);
+    }
+
+    .recipe-shopping-action form {
+        margin: 0;
     }
 
     .recipe-method {
@@ -1640,6 +1660,15 @@
         .recipe-hero {
             grid-template-columns: minmax(0, 0.9fr) minmax(20rem, 1.1fr);
             align-items: center;
+        }
+
+        .recipe-ingredient-list li {
+            grid-template-columns: minmax(4.5rem, auto) minmax(0, 1fr) auto;
+        }
+
+        .recipe-ingredient-list__state {
+            grid-column: auto;
+            justify-content: flex-end;
         }
     }
 
