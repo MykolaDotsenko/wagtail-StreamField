@@ -322,6 +322,36 @@ Cap the visible action feed at six. One Pantry item emits only its strongest rea
 
 ---
 
+## 2026-09-19 — How should the tutorial blog evolve into the guide system?
+
+Area: Architecture / Wagtail
+Status: Validated in PR7
+Confidence: High
+
+### Question
+
+Should the existing BlogPage hierarchy be renamed/rebuilt immediately, or incrementally reframed into the DomoNest guide authoring system?
+
+### Evidence
+
+The existing page types already contain live-content-compatible StreamField data and page-tree relationships. Wagtail supports reusable structured blocks, block groups, editor descriptions and previews. Wagtail 7.4 also provides ImageBlock as the accessibility-focused image block with contextual alt/decorative authoring support.
+
+Official references:
+- https://docs.wagtail.org/en/stable-7.4.x/reference/streamfield/blocks.html
+- https://docs.wagtail.org/en/stable-7.4.x/topics/snippets/
+
+### Finding
+
+Reframe the existing BlogIndexPage / BlogPage schema in place for PR7 instead of creating a risky duplicate content tree or destructive rename migration. Editor-facing names become Guide library / Home guide. A shared `content.blocks` module provides the reusable authoring vocabulary.
+
+Keep the legacy ImageChooserBlock only so existing StreamField values remain compatible; new guide authors receive a separate accessibility-first ImageBlock.
+
+### Product/engineering impact
+
+PR8 RecipePage can reuse shared content blocks without coupling recipe structure to the legacy blog internals. A future internal app/model rename is optional cleanup, not a product prerequisite.
+
+---
+
 ## Open research backlog
 
 These questions should be answered only when their PR approaches:
