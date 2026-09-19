@@ -243,9 +243,7 @@ def meal_recipe_options(*, user, today=None) -> tuple[MealRecipeOption, ...]:
     options = []
 
     recipes = (
-        RecipePage.objects.live()
-        .prefetch_related(_recipe_lines_prefetch())
-        .order_by("title", "pk")
+        RecipePage.objects.live().prefetch_related(_recipe_lines_prefetch()).order_by("title", "pk")
     )
     for recipe in recipes:
         readiness = recipe_readiness(
@@ -393,9 +391,7 @@ def today_snapshot(*, user, today=None, limit: int = 6) -> TodaySnapshot:
     routines = routine_snapshot(user=user, today=today)
     shopping = shopping_snapshot(user=user)
     dinner = meal_plan_for_date(user=user, meal_date=today)
-    pantry_items = tuple(
-        entry.item for entry in (*pantry.attention_items, *pantry.other_items)
-    )
+    pantry_items = tuple(entry.item for entry in (*pantry.attention_items, *pantry.other_items))
     dinner_readiness = (
         recipe_readiness(
             recipe=dinner.recipe,
