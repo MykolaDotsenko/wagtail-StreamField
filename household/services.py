@@ -145,10 +145,34 @@ def ensure_shopping_item(
     user,
     name: str,
     category: str = AUTO_CATEGORY,
+    ingredient=None,
 ) -> AddShoppingResult:
     display_name = ShoppingItem.normalize_display_name(name)
     normalized_name = ShoppingItem.normalize_identity(display_name)
     resolved_category = resolve_category(display_name, category)
+
+    if ingredient is not None:
+        canonical_item = ShoppingItem.objects.filter(
+            user=user,
+            ingredient=ingredient,
+            status=ShoppingItem.Status.OPEN,
+            deleted_at=None,
+        ).first()
+        if canonical_item is not None:
+            if (
+                canonical_item.category == ShoppingItem.Category.OTHER
+                and resolved_category != ShoppingItem.Category.OTHER
+            ):
+                canonical_item.category = resolved_category
+                canonical_item.save(
+                    update_fields=[
+                        "category",
+                        "name",
+                        "normalized_name",
+                        "updated_at",
+                    ]
+                )
+            return AddShoppingResult(item=canonical_item, created=False)
 
     item, created = ShoppingItem.objects.get_or_create(
         user=user,
@@ -156,21 +180,39 @@ def ensure_shopping_item(
         status=ShoppingItem.Status.OPEN,
         deleted_at=None,
         defaults={
+            "ingredient": ingredient,
             "name": display_name,
             "quantity": 1,
             "category": resolved_category,
         },
     )
 
+    if created:
+        return AddShoppingResult(item=item, created=True)
+
+    update_fields = []
     if (
-        not created
-        and item.category == ShoppingItem.Category.OTHER
+        item.category == ShoppingItem.Category.OTHER
         and resolved_category != ShoppingItem.Category.OTHER
     ):
         item.category = resolved_category
-        item.save(update_fields=["category", "name", "normalized_name", "updated_at"])
+        update_fields.append("category")
 
-    return AddShoppingResult(item=item, created=created)
+    if ingredient is not None and item.ingredient_id is None:
+        item.ingredient = ingredient
+        update_fields.append("ingredient")
+
+    if update_fields:
+        item.save(
+            update_fields=[
+                *update_fields,
+                "name",
+                "normalized_name",
+                "updated_at",
+            ]
+        )
+
+    return AddShoppingResult(item=item, created=False)
 
 
 @transaction.atomic
@@ -338,6 +380,7 @@ def add_pantry_item_to_shopping(*, user, item_id: int) -> AddShoppingResult:
         user=user,
         name=item.name,
         category=item.category,
+        ingredient=item.ingredient,
     )
 
 
