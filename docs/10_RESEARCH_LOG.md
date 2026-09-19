@@ -467,6 +467,35 @@ The UI may explain these labels, but must not call the ordering "recommended", "
 
 ---
 
+## 2026-09-19 — Should Discover use one index for public and private data?
+
+Area: Architecture / Security / Search
+Status: Validated in PR11
+Confidence: High
+
+### Question
+
+Should DomoNest combine public Wagtail content and private household state in one search backend/result stream?
+
+### Evidence
+
+Wagtail's indexed QuerySet search is a natural fit for published Page models. Private household data already has strong relational ownership boundaries and modest MVP scale.
+
+Official reference:
+- https://docs.wagtail.org/en/stable/topics/search/indexing.html
+
+### Finding
+
+Keep execution separate. Public indexed search operates only on live RecipePage and Guide Page querysets. Private search begins from owner-scoped household QuerySets and is skipped entirely for anonymous users.
+
+The UI groups public and private results rather than inventing one opaque relevance score.
+
+### Product/engineering impact
+
+PR11 adds grouped Discover results, recipe/guide/home filters and a public landing. Private result queries are bounded and deterministic. PR12 may measure query cost, but should not introduce a new search service without evidence.
+
+---
+
 ## Open research backlog
 
 These questions should be answered only when their PR approaches:
@@ -477,5 +506,5 @@ These questions should be answered only when their PR approaches:
 4. [Resolved PR5] Use a Routine cadence row + immutable RoutineEvent history; keep postponed_until separate from due_on and retain a monthly anchor day.
 5. Should shopping purchase history be retained indefinitely or summarized?
 6. [Resolved PR10] Today adds unresolved dinner/readiness before the Shopping summary; resolved dinner remains calm context.
-7. What PostgreSQL/search strategy is justified at portfolio/demo scale?
+7. [Resolved PR11 baseline] Wagtail database search for public editorial content + bounded owner-scoped relational private search; reassess only after measured scale.
 8. What performance budget should become CI-enforced after baseline measurements exist?
