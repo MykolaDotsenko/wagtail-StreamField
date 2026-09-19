@@ -34,10 +34,10 @@ class RecipeIngredientReadiness:
 
     @property
     def needs_shopping(self) -> bool:
-        return (
-            not self.line.optional
-            and self.state in {RecipeReadinessState.LOW, RecipeReadinessState.MISSING}
-        )
+        return not self.line.optional and self.state in {
+            RecipeReadinessState.LOW,
+            RecipeReadinessState.MISSING,
+        }
 
 
 @dataclass(frozen=True)
@@ -140,20 +140,12 @@ def _line_readiness(*, line, pantry_item: PantryItem | None, today) -> RecipeIng
 def recipe_readiness(*, recipe, user, today=None) -> RecipeReadinessSnapshot:
     today = today or timezone.localdate()
     pantry_items = list(
-        PantryItem.objects.filter(user=user)
-        .select_related("ingredient")
-        .order_by("pk")
+        PantryItem.objects.filter(user=user).select_related("ingredient").order_by("pk")
     )
     by_ingredient = {
-        item.ingredient_id: item
-        for item in pantry_items
-        if item.ingredient_id is not None
+        item.ingredient_id: item for item in pantry_items if item.ingredient_id is not None
     }
-    by_name = {
-        item.normalized_name: item
-        for item in pantry_items
-        if item.ingredient_id is None
-    }
+    by_name = {item.normalized_name: item for item in pantry_items if item.ingredient_id is None}
 
     entries = []
     for line in recipe.ingredient_lines.select_related("ingredient").order_by("sort_order", "pk"):
@@ -168,9 +160,7 @@ def recipe_readiness(*, recipe, user, today=None) -> RecipeReadinessSnapshot:
     return RecipeReadinessSnapshot(
         items=items,
         needed_items=needed_items,
-        available_count=sum(
-            entry.state == RecipeReadinessState.AVAILABLE for entry in items
-        ),
+        available_count=sum(entry.state == RecipeReadinessState.AVAILABLE for entry in items),
         low_count=sum(entry.state == RecipeReadinessState.LOW for entry in items),
         missing_count=sum(entry.state == RecipeReadinessState.MISSING for entry in items),
         unknown_count=sum(entry.state == RecipeReadinessState.UNKNOWN for entry in items),
