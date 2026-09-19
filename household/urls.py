@@ -6,6 +6,8 @@ app_name = "household"
 
 urlpatterns = [
     path("today/", views.today, name="today"),
+    path("plan/", views.plan, name="plan"),
+    path("plan/<int:entry_id>/delete/", views.remove_dinner, name="remove_dinner"),
     path(
         "recipes/<int:recipe_id>/add-needed-to-shopping/",
         views.add_recipe_to_shopping,
