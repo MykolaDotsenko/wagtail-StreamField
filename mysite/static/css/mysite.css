@@ -340,6 +340,27 @@
         gap: var(--space-1);
     }
 
+    .mobile-account-action {
+        margin-left: auto;
+    }
+
+    .header-account-button {
+        min-height: var(--control-min);
+        padding-inline: var(--space-3);
+        border: 0;
+        border-radius: var(--radius-sm);
+        background: transparent;
+        color: var(--color-text-muted);
+        cursor: pointer;
+        font-size: var(--step--1);
+        font-weight: 700;
+    }
+
+    .header-account-button:hover {
+        background: var(--color-surface-subtle);
+        color: var(--color-text);
+    }
+
     .nav-form,
     .mobile-nav__form {
         margin: 0;
@@ -769,6 +790,81 @@
         gap: var(--space-8);
     }
 
+    .routine-primary-fields {
+        display: grid;
+        gap: var(--space-4);
+    }
+
+    .routine-section {
+        display: grid;
+        gap: var(--space-3);
+        margin-top: var(--space-12);
+    }
+
+    .routine-list {
+        display: grid;
+        gap: var(--space-3);
+    }
+
+    .routine-card {
+        display: grid;
+        gap: var(--space-4);
+        padding: var(--space-4);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-lg);
+        background: var(--color-surface);
+    }
+
+    .routine-card__content {
+        display: grid;
+        gap: var(--space-2);
+    }
+
+    .routine-card__statuses {
+        gap: var(--space-2);
+    }
+
+    .routine-actions {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: flex-start;
+        gap: var(--space-2);
+    }
+
+    .routine-actions form {
+        margin: 0;
+    }
+
+    .routine-postpone {
+        position: relative;
+    }
+
+    .routine-postpone > summary {
+        list-style: none;
+    }
+
+    .routine-postpone > summary::-webkit-details-marker {
+        display: none;
+    }
+
+    .routine-postpone__form {
+        display: grid;
+        min-width: min(20rem, calc(100vw - 3rem));
+        gap: var(--space-3);
+        margin-top: var(--space-2);
+        padding: var(--space-4);
+        border: 1px solid var(--color-border);
+        border-radius: var(--radius-lg);
+        background: var(--color-surface-raised);
+        box-shadow: var(--shadow-float);
+    }
+
+    .routine-edit-card {
+        display: grid;
+        max-width: 52rem;
+        gap: var(--space-8);
+    }
+
     .danger-zone {
         display: flex;
         flex-wrap: wrap;
@@ -1141,6 +1237,16 @@
         .pantry-form-grid {
             grid-template-columns: repeat(2, minmax(0, 1fr));
         }
+
+        .routine-primary-fields {
+            grid-template-columns: minmax(0, 1.5fr) minmax(10rem, 0.75fr) minmax(10rem, 0.75fr);
+            align-items: end;
+        }
+
+        .routine-card {
+            grid-template-columns: minmax(0, 1fr) auto;
+            align-items: center;
+        }
     }
 
     @media (min-width: 56.25rem) {
@@ -1150,6 +1256,10 @@
 
         .desktop-nav {
             display: flex;
+        }
+
+        .mobile-account-action {
+            display: none;
         }
 
         .mobile-nav {
