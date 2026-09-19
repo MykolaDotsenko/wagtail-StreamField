@@ -73,7 +73,7 @@ class BlogPageTag(TaggedItemBase):
 
 
 class BlogPage(Page):
-    date = models.DateField("Published date")
+    date = models.DateField("Post date")
     intro = models.CharField(max_length=250)
     authors = ParentalManyToManyField("blog.Author", blank=True)
     tags = ClusterTaggableManager(through=BlogPageTag, blank=True)

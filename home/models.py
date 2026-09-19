@@ -7,9 +7,7 @@ from .blocks import HomeStreamBlock
 
 
 class HomePage(Page):
-    body = RichTextField(
-        blank=True, help_text="Legacy content kept for backwards compatibility."
-    )
+    body = RichTextField(blank=True)
     content = StreamField(HomeStreamBlock(), blank=True, use_json_field=True)
 
     max_count = 1
