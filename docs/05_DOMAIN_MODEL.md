@@ -130,7 +130,7 @@ Database constraints protect identity, uniqueness, non-negative precise values a
 
 ## Routines
 
-Replace a simplistic `is_done` recurring model with a real recurrence model.
+Implemented in PR5 as a real recurrence model rather than an `is_done` task.
 
 Routine:
 - title;
@@ -160,12 +160,18 @@ Do not add arbitrary cron/RRULE UI until justified.
 
 ### Invariants
 
-1. Completing a recurring routine records history.
-2. Completion does not permanently mark the routine done.
-3. Next due date is deterministic.
-4. Skip is distinct from complete.
-5. Postpone changes current due state without rewriting past history.
-6. Routine history is user-owned/private.
+1. Routine stores the current recurrence rule and cadence date; RoutineEvent stores immutable action history.
+2. Completing or skipping records a terminal history event for the current scheduled occurrence.
+3. A scheduled occurrence can have at most one terminal outcome.
+4. Completion does not permanently mark a recurring routine done.
+5. One-time completion/skip deactivates the routine but preserves history.
+6. Daily/weekly/monthly next due dates are deterministic and advance to the first cadence strictly after today, collapsing stale backlog.
+7. Monthly routines preserve their original day-of-month anchor across short months.
+8. Postpone changes only the effective due date, not the recurrence anchor/cadence date.
+9. Repeated/stale browser submissions cannot accidentally act on the newly advanced occurrence.
+10. Skip is distinct from complete.
+11. Archive stops future due dates while preserving history.
+12. Routine state/history is user-owned/private.
 
 ## Recipes
 
