@@ -16,6 +16,8 @@ from .forms import (
     RoutinePostponeForm,
     ShoppingItemCreateForm,
 )
+from recipes.models import RecipePage
+
 from .models import PantryItem, Routine, ShoppingItem
 from .selectors import (
     deleted_shopping_item_for_undo,
@@ -24,6 +26,7 @@ from .selectors import (
     shopping_snapshot,
     today_snapshot,
 )
+from .recipe_reconciliation import add_needed_recipe_ingredients
 from .services import (
     StaleRoutineAction,
     add_pantry_item_to_shopping,
@@ -159,6 +162,36 @@ def restore_item(request, item_id):
         messages.success(request, f"{result.item.name} restored.")
 
     return redirect("household:shopping")
+
+
+
+
+@login_required
+@require_POST
+def add_recipe_to_shopping(request, recipe_id):
+    try:
+        recipe = RecipePage.objects.live().get(pk=recipe_id)
+    except RecipePage.DoesNotExist as exc:
+        raise Http404 from exc
+
+    result = add_needed_recipe_ingredients(recipe=recipe, user=request.user)
+    if result.added_count:
+        message = (
+            f"{result.added_count} needed item"
+            f"{'s' if result.added_count != 1 else ''} added to Shopping."
+        )
+        if result.existing_count:
+            message += (
+                f" {result.existing_count} "
+                f"{'were' if result.existing_count != 1 else 'was'} already there."
+            )
+        messages.success(request, message)
+    elif result.considered_count:
+        messages.info(request, "Shopping already has every ingredient that needs adding.")
+    else:
+        messages.info(request, "Nothing missing or low needs to be added.")
+
+    return redirect(recipe.url)
 
 
 @login_required
