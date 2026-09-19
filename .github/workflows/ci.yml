@@ -47,6 +47,13 @@ jobs:
           python -m pip install --upgrade pip
           python -m pip install -r requirements-dev.txt
 
+      - name: Validate deployment artifacts
+        if: matrix.python-version == '3.13'
+        run: |
+          bash -n scripts/render-start.sh
+          python -m py_compile scripts/deployment_smoke.py
+          python -c "import yaml; yaml.safe_load(open('render.yaml', encoding='utf-8'))"
+
       - name: Lint
         run: ruff check .
 
