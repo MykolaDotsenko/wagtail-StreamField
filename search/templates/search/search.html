@@ -1,17 +1,17 @@
 {% extends "base.html" %}
-{% load wagtailcore_tags %}
 
-{% block body_class %}template-searchresults{% endblock %}
+{% block body_class %}template-discover{% endblock %}
 {% block title %}Discover{% endblock %}
 
 {% block content %}
-<section class="page-heading page-heading--compact" aria-labelledby="search-title">
+<section class="page-heading page-heading--compact" aria-labelledby="discover-title">
     <p class="eyebrow">Discover</p>
-    <h1 id="search-title">Find useful home knowledge</h1>
-    <p class="lede">Search DomoNest content without navigating a dense catalogue.</p>
+    <h1 id="discover-title">Find what helps at home</h1>
+    <p class="lede">Search public recipes and guides. When you are signed in, your own household state stays in a clearly separate private group.</p>
 </section>
 
-<form class="search-form" action="{% url 'search' %}" method="get" role="search">
+<form class="search-form discover-search" action="{% url 'search' %}" method="get" role="search">
+    <input type="hidden" name="kind" value="{{ search_kind }}">
     <div class="field">
         <label class="field__label" for="search-query">What are you looking for?</label>
         <div class="field__inline">
@@ -20,62 +20,126 @@
                 id="search-query"
                 type="search"
                 name="query"
-                value="{{ search_query|default:'' }}"
+                value="{{ search_query }}"
                 autocomplete="off"
                 enterkeyhint="search"
+                maxlength="120"
+                placeholder="Pasta, fridge, laundry…"
             >
             <button class="button button--primary" type="submit">Search</button>
         </div>
+        <p class="field__help">Search uses published DomoNest content. Private results are searched only for your signed-in account.</p>
     </div>
 </form>
 
-{% if search_results %}
-    <section class="results-section" aria-labelledby="results-title">
-        <div class="section-heading">
-            <h2 id="results-title">Results</h2>
-            <span class="meta-text">Page {{ search_results.number }} of {{ search_results.paginator.num_pages }}</span>
-        </div>
-
-        <ul class="item-list">
-            {% for result in search_results %}
-                <li class="item-row item-row--link">
-                    <span class="item-row__body">
-                        <a class="item-row__title" href="{% pageurl result %}">{{ result }}</a>
-                        {% if result.search_description %}
-                            <span>{{ result.search_description }}</span>
-                        {% endif %}
-                    </span>
-                    <span class="item-row__arrow" aria-hidden="true">→</span>
-                </li>
-            {% endfor %}
-        </ul>
-
-        {% if search_results.has_previous or search_results.has_next %}
-            <nav class="pagination" aria-label="Search results pages">
-                {% if search_results.has_previous %}
-                    <a class="button button--secondary" href="{% url 'search' %}?query={{ search_query|urlencode }}&amp;page={{ search_results.previous_page_number }}">Previous</a>
-                {% endif %}
-                {% if search_results.has_next %}
-                    <a class="button button--secondary" href="{% url 'search' %}?query={{ search_query|urlencode }}&amp;page={{ search_results.next_page_number }}">Next</a>
-                {% endif %}
-            </nav>
+{% if snapshot.has_query %}
+    <nav class="discover-filters" aria-label="Search result type">
+        <a class="filter-chip"{% if search_kind == "all" %} aria-current="page"{% endif %} href="{% url 'search' %}?query={{ search_query|urlencode }}&amp;kind=all">All</a>
+        <a class="filter-chip"{% if search_kind == "recipes" %} aria-current="page"{% endif %} href="{% url 'search' %}?query={{ search_query|urlencode }}&amp;kind=recipes">Recipes</a>
+        <a class="filter-chip"{% if search_kind == "guides" %} aria-current="page"{% endif %} href="{% url 'search' %}?query={{ search_query|urlencode }}&amp;kind=guides">Guides</a>
+        {% if request.user.is_authenticated %}
+            <a class="filter-chip"{% if search_kind == "home" %} aria-current="page"{% endif %} href="{% url 'search' %}?query={{ search_query|urlencode }}&amp;kind=home">Your home</a>
         {% endif %}
-    </section>
-{% elif search_query %}
-    <section class="empty-state" aria-labelledby="no-results-title">
-        <div class="empty-state__icon" aria-hidden="true">?</div>
-        <div>
-            <h2 id="no-results-title">No useful match yet</h2>
-            <p>Try a shorter phrase or a broader household topic.</p>
-        </div>
-    </section>
+    </nav>
+
+    <div class="discover-summary" aria-live="polite">
+        <strong>{{ snapshot.result_count }}</strong>
+        <span>result{{ snapshot.result_count|pluralize }} for “{{ search_query }}”</span>
+    </div>
+
+    {% if snapshot.recipe_results %}
+        <section class="discover-group" aria-labelledby="recipe-results-title">
+            <div class="section-heading">
+                <div>
+                    <p class="eyebrow">Public knowledge</p>
+                    <h2 id="recipe-results-title">Recipes</h2>
+                </div>
+                <span class="meta-text">{{ snapshot.recipe_results|length }}</span>
+            </div>
+            {% include "search/_public_results.html" with results=snapshot.recipe_results %}
+        </section>
+    {% endif %}
+
+    {% if snapshot.guide_results %}
+        <section class="discover-group" aria-labelledby="guide-results-title">
+            <div class="section-heading">
+                <div>
+                    <p class="eyebrow">Public knowledge</p>
+                    <h2 id="guide-results-title">Guides</h2>
+                </div>
+                <span class="meta-text">{{ snapshot.guide_results|length }}</span>
+            </div>
+            {% include "search/_public_results.html" with results=snapshot.guide_results %}
+        </section>
+    {% endif %}
+
+    {% if snapshot.home_results %}
+        <section class="discover-group discover-group--private" aria-labelledby="home-results-title">
+            <div class="section-heading">
+                <div>
+                    <p class="eyebrow">Only you</p>
+                    <h2 id="home-results-title">Your home</h2>
+                </div>
+                <span class="meta-text">{{ snapshot.home_results|length }}</span>
+            </div>
+            <p class="discover-group__intro">These matches come only from household data owned by your signed-in account.</p>
+            {% include "search/_home_results.html" with results=snapshot.home_results %}
+        </section>
+    {% endif %}
+
+    {% if not snapshot.result_count %}
+        <section class="empty-state" aria-labelledby="no-results-title">
+            <div class="empty-state__icon" aria-hidden="true">?</div>
+            <div>
+                <h2 id="no-results-title">No useful match yet</h2>
+                {% if search_kind == "home" and not request.user.is_authenticated %}
+                    <p>Sign in before searching private household state.</p>
+                    <a class="button button--secondary" href="{% url 'login' %}?next={{ request.get_full_path|urlencode }}">Sign in</a>
+                {% else %}
+                    <p>Try a shorter phrase, another result type, or a broader household topic.</p>
+                {% endif %}
+            </div>
+        </section>
+    {% endif %}
 {% else %}
-    <section class="empty-state" aria-labelledby="search-empty-title">
-        <div class="empty-state__icon" aria-hidden="true">⌕</div>
-        <div>
-            <h2 id="search-empty-title">Start with a household question</h2>
-            <p>Recipes, storage guidance and home routines will become easier to retrieve as the knowledge base grows.</p>
-        </div>
-    </section>
+    <div class="discover-landing">
+        <section class="discover-group" aria-labelledby="latest-recipes-title">
+            <div class="section-heading">
+                <div>
+                    <p class="eyebrow">Cook</p>
+                    <h2 id="latest-recipes-title">Latest recipes</h2>
+                </div>
+            </div>
+            {% if snapshot.latest_recipes %}
+                {% include "search/_public_results.html" with results=snapshot.latest_recipes %}
+            {% else %}
+                <div class="empty-state empty-state--compact">
+                    <div>
+                        <h3>Recipes are being prepared</h3>
+                        <p>Published recipes will appear here automatically.</p>
+                    </div>
+                </div>
+            {% endif %}
+        </section>
+
+        <section class="discover-group" aria-labelledby="latest-guides-title">
+            <div class="section-heading">
+                <div>
+                    <p class="eyebrow">Learn</p>
+                    <h2 id="latest-guides-title">Latest guides</h2>
+                </div>
+            </div>
+            {% if snapshot.latest_guides %}
+                {% include "search/_public_results.html" with results=snapshot.latest_guides %}
+            {% else %}
+                <div class="empty-state empty-state--compact">
+                    <div>
+                        <h3>Guides are being prepared</h3>
+                        <p>Published household guidance will appear here automatically.</p>
+                    </div>
+                </div>
+            {% endif %}
+        </section>
+    </div>
 {% endif %}
 {% endblock %}
