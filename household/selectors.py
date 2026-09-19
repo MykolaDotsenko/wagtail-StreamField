@@ -2,12 +2,17 @@ from collections import defaultdict
 from dataclasses import dataclass
 from datetime import date, timedelta
 
+from django.db.models import Prefetch
 from django.utils import timezone
 
-from recipes.models import RecipePage
+from recipes.models import RecipeIngredient, RecipePage
 
 from .models import MealPlanEntry, PantryItem, Routine, ShoppingItem
-from .recipe_reconciliation import recipe_readiness
+from .recipe_reconciliation import (
+    pantry_readiness_lookup,
+    pantry_readiness_lookup_from_items,
+    recipe_readiness,
+)
 
 
 @dataclass(frozen=True)
@@ -221,12 +226,35 @@ class MealRecipeOption:
         return " · ".join(parts)
 
 
+def _recipe_lines_prefetch():
+    return Prefetch(
+        "ingredient_lines",
+        queryset=RecipeIngredient.objects.select_related("ingredient").order_by(
+            "sort_order",
+            "pk",
+        ),
+        to_attr="readiness_lines",
+    )
+
+
 def meal_recipe_options(*, user, today=None) -> tuple[MealRecipeOption, ...]:
     today = today or timezone.localdate()
+    pantry_lookup = pantry_readiness_lookup(user=user)
     options = []
 
-    for recipe in RecipePage.objects.live().order_by("title", "pk"):
-        readiness = recipe_readiness(recipe=recipe, user=user, today=today)
+    recipes = (
+        RecipePage.objects.live()
+        .prefetch_related(_recipe_lines_prefetch())
+        .order_by("title", "pk")
+    )
+    for recipe in recipes:
+        readiness = recipe_readiness(
+            recipe=recipe,
+            user=user,
+            today=today,
+            pantry_lookup=pantry_lookup,
+            ingredient_lines=recipe.readiness_lines,
+        )
         options.append(MealRecipeOption(recipe=recipe, readiness=readiness))
 
     def rank(option):
@@ -281,13 +309,30 @@ def meal_plan_week(*, user, anchor=None, today=None) -> MealPlanWeek:
     start = week_start(anchor)
     end = start + timedelta(days=6)
 
-    entries = {
-        entry.date: entry
-        for entry in MealPlanEntry.objects.filter(
+    entry_queryset = (
+        MealPlanEntry.objects.filter(
             user=user,
             date__range=(start, end),
-        ).select_related("recipe")
-    }
+        )
+        .select_related("recipe")
+        .prefetch_related(
+            Prefetch(
+                "recipe__ingredient_lines",
+                queryset=RecipeIngredient.objects.select_related("ingredient").order_by(
+                    "sort_order",
+                    "pk",
+                ),
+                to_attr="readiness_lines",
+            )
+        )
+    )
+    entry_list = list(entry_queryset)
+    entries = {entry.date: entry for entry in entry_list}
+    pantry_lookup = (
+        pantry_readiness_lookup(user=user)
+        if any(entry.recipe_id and entry.recipe and entry.recipe.live for entry in entry_list)
+        else None
+    )
 
     days = []
     for offset in range(7):
@@ -295,7 +340,13 @@ def meal_plan_week(*, user, anchor=None, today=None) -> MealPlanWeek:
         entry = entries.get(meal_date)
         recipe_available = bool(entry and entry.recipe_id and entry.recipe and entry.recipe.live)
         readiness = (
-            recipe_readiness(recipe=entry.recipe, user=user, today=meal_date)
+            recipe_readiness(
+                recipe=entry.recipe,
+                user=user,
+                today=meal_date,
+                pantry_lookup=pantry_lookup,
+                ingredient_lines=entry.recipe.readiness_lines,
+            )
             if recipe_available
             else None
         )
@@ -342,8 +393,16 @@ def today_snapshot(*, user, today=None, limit: int = 6) -> TodaySnapshot:
     routines = routine_snapshot(user=user, today=today)
     shopping = shopping_snapshot(user=user)
     dinner = meal_plan_for_date(user=user, meal_date=today)
+    pantry_items = tuple(
+        entry.item for entry in (*pantry.attention_items, *pantry.other_items)
+    )
     dinner_readiness = (
-        recipe_readiness(recipe=dinner.recipe, user=user, today=today)
+        recipe_readiness(
+            recipe=dinner.recipe,
+            user=user,
+            today=today,
+            pantry_lookup=pantry_readiness_lookup_from_items(pantry_items),
+        )
         if dinner and dinner.recipe_id and dinner.recipe and dinner.recipe.live
         else None
     )
