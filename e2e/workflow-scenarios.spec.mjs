@@ -7,7 +7,7 @@ async function login(page) {
   await page.getByLabel("Username").fill("e2e");
   await page.getByLabel("Password").fill("e2e-password");
   await page.getByRole("button", { name: "Sign in" }).click();
-  await expect(page).toHaveURL(/\/home\/today\/$/);
+  await expect(page).toHaveURL(/\/$/);
 }
 
 
