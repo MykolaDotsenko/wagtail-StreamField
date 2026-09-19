@@ -52,6 +52,17 @@ class MealPlanServiceTests(TestCase):
         self.assertEqual(second.recipe_id, self.recipe.pk)
         self.assertEqual(second.name, self.recipe.title)
 
+    def test_non_live_recipe_is_rejected_by_service(self):
+        self.recipe.live = False
+        self.recipe.save()
+
+        with self.assertRaises(ValueError):
+            set_dinner(
+                user=self.user,
+                dinner_date=self.day,
+                recipe=self.recipe,
+            )
+
     def test_custom_dinner_is_normalized(self):
         entry = set_dinner(
             user=self.user,
