@@ -1,0 +1,163 @@
+<div class="field">
+    <label class="field__label" for="pantry-name">Item</label>
+    <input
+        class="field__control{% if form.name.errors %} field__control--error{% endif %}"
+        id="pantry-name"
+        name="{{ form.name.html_name }}"
+        type="text"
+        value="{{ form.name.value|default:'' }}"
+        maxlength="120"
+        autocomplete="off"
+        placeholder="Milk, rice, detergent…"
+        required
+        {% if form.name.errors %}aria-invalid="true" aria-describedby="pantry-name-errors" autofocus{% endif %}
+    >
+    {% if form.name.errors %}
+        <div class="field__error" id="pantry-name-errors">
+            {% for error in form.name.errors %}<p>{{ error }}</p>{% endfor %}
+        </div>
+    {% endif %}
+</div>
+
+<details class="disclosure pantry-disclosure"{% if expanded or form.quantity_mode.errors or form.approximate_level.errors or form.amount.errors or form.unit.errors or form.low_stock_threshold.errors or form.category.errors or form.expires_on.errors %} open{% endif %}>
+    <summary>Stock details</summary>
+
+    <div class="pantry-form-grid">
+        <div class="field">
+            <label class="field__label" for="pantry-mode">Tracking style</label>
+            <select
+                class="field__control{% if form.quantity_mode.errors %} field__control--error{% endif %}"
+                id="pantry-mode"
+                name="{{ form.quantity_mode.html_name }}"
+                {% if form.quantity_mode.errors %}aria-invalid="true" aria-describedby="pantry-mode-errors"{% endif %}
+            >
+                {% for value, label in form.fields.quantity_mode.choices %}
+                    <option value="{{ value }}"{% if form.quantity_mode.value|default:"approximate" == value %} selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+            <p class="field__help">Approximate tracking is the low-maintenance default.</p>
+            {% if form.quantity_mode.errors %}
+                <div class="field__error" id="pantry-mode-errors">
+                    {% for error in form.quantity_mode.errors %}<p>{{ error }}</p>{% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="field">
+            <label class="field__label" for="pantry-level">Approximate level</label>
+            <select
+                class="field__control{% if form.approximate_level.errors %} field__control--error{% endif %}"
+                id="pantry-level"
+                name="{{ form.approximate_level.html_name }}"
+                {% if form.approximate_level.errors %}aria-invalid="true" aria-describedby="pantry-level-errors"{% endif %}
+            >
+                {% for value, label in form.fields.approximate_level.choices %}
+                    <option value="{{ value }}"{% if form.approximate_level.value|default:"full" == value %} selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+            <p class="field__help">Used only when tracking style is Approximate.</p>
+            {% if form.approximate_level.errors %}
+                <div class="field__error" id="pantry-level-errors">
+                    {% for error in form.approximate_level.errors %}<p>{{ error }}</p>{% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="field">
+            <label class="field__label" for="pantry-amount">Exact amount</label>
+            <input
+                class="field__control{% if form.amount.errors %} field__control--error{% endif %}"
+                id="pantry-amount"
+                name="{{ form.amount.html_name }}"
+                type="number"
+                min="0"
+                step="0.01"
+                inputmode="decimal"
+                value="{{ form.amount.value|default:'' }}"
+                {% if form.amount.errors %}aria-invalid="true" aria-describedby="pantry-amount-errors"{% endif %}
+            >
+            {% if form.amount.errors %}
+                <div class="field__error" id="pantry-amount-errors">
+                    {% for error in form.amount.errors %}<p>{{ error }}</p>{% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="field">
+            <label class="field__label" for="pantry-unit">Unit</label>
+            <select
+                class="field__control{% if form.unit.errors %} field__control--error{% endif %}"
+                id="pantry-unit"
+                name="{{ form.unit.html_name }}"
+                {% if form.unit.errors %}aria-invalid="true" aria-describedby="pantry-unit-errors"{% endif %}
+            >
+                {% for value, label in form.fields.unit.choices %}
+                    <option value="{{ value }}"{% if form.unit.value|default:"" == value %} selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+            {% if form.unit.errors %}
+                <div class="field__error" id="pantry-unit-errors">
+                    {% for error in form.unit.errors %}<p>{{ error }}</p>{% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="field">
+            <label class="field__label" for="pantry-threshold">Low-stock threshold</label>
+            <input
+                class="field__control{% if form.low_stock_threshold.errors %} field__control--error{% endif %}"
+                id="pantry-threshold"
+                name="{{ form.low_stock_threshold.html_name }}"
+                type="number"
+                min="0"
+                step="0.01"
+                inputmode="decimal"
+                value="{{ form.low_stock_threshold.value|default:'' }}"
+                {% if form.low_stock_threshold.errors %}aria-invalid="true" aria-describedby="pantry-threshold-errors"{% endif %}
+            >
+            <p class="field__help">Optional. Used only with precise tracking.</p>
+            {% if form.low_stock_threshold.errors %}
+                <div class="field__error" id="pantry-threshold-errors">
+                    {% for error in form.low_stock_threshold.errors %}<p>{{ error }}</p>{% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="field">
+            <label class="field__label" for="pantry-category">Category</label>
+            <select
+                class="field__control{% if form.category.errors %} field__control--error{% endif %}"
+                id="pantry-category"
+                name="{{ form.category.html_name }}"
+                {% if form.category.errors %}aria-invalid="true" aria-describedby="pantry-category-errors"{% endif %}
+            >
+                {% for value, label in form.fields.category.choices %}
+                    <option value="{{ value }}"{% if form.category.value|default:"other" == value %} selected{% endif %}>{{ label }}</option>
+                {% endfor %}
+            </select>
+            {% if form.category.errors %}
+                <div class="field__error" id="pantry-category-errors">
+                    {% for error in form.category.errors %}<p>{{ error }}</p>{% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="field">
+            <label class="field__label" for="pantry-expiry">Best before / expiry</label>
+            <input
+                class="field__control{% if form.expires_on.errors %} field__control--error{% endif %}"
+                id="pantry-expiry"
+                name="{{ form.expires_on.html_name }}"
+                type="date"
+                value="{{ form.expires_on.value|date:'Y-m-d'|default:form.expires_on.value|default:'' }}"
+                {% if form.expires_on.errors %}aria-invalid="true" aria-describedby="pantry-expiry-errors"{% endif %}
+            >
+            <p class="field__help">Optional. Missing date stays explicitly unknown.</p>
+            {% if form.expires_on.errors %}
+                <div class="field__error" id="pantry-expiry-errors">
+                    {% for error in form.expires_on.errors %}<p>{{ error }}</p>{% endfor %}
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</details>
