@@ -51,6 +51,8 @@
                         <a class="button button--secondary" href="{% url 'household:pantry' %}">Open Pantry</a>
                     {% elif signal.destination == "shopping" %}
                         <a class="button button--secondary" href="{% url 'household:shopping' %}">Open Shopping</a>
+                    {% elif signal.destination == "plan" %}
+                        <a class="button button--secondary" href="{% url 'household:plan' %}">Open Plan</a>
                     {% endif %}
                 </li>
             {% endfor %}
@@ -79,6 +81,14 @@
     </div>
 
     <div class="today-shortcuts">
+        <a class="surface-panel today-shortcut" href="{% url 'household:plan' %}">
+            <span class="today-shortcut__value">{% if snapshot.dinner_name %}✓{% else %}—{% endif %}</span>
+            <span>
+                <strong>Plan</strong>
+                <small>{% if snapshot.dinner_name %}dinner decided{% else %}dinner not planned{% endif %}</small>
+            </span>
+        </a>
+
         <a class="surface-panel today-shortcut" href="{% url 'household:shopping' %}">
             <span class="today-shortcut__value">{{ snapshot.shopping_count }}</span>
             <span>
@@ -105,13 +115,27 @@
     </div>
 </section>
 
-<section class="today-section">
-    <div class="surface-panel meal-placeholder">
+<section class="today-section" aria-labelledby="today-dinner-title">
+    <div class="surface-panel today-dinner">
         <div>
             <p class="eyebrow">Dinner</p>
-            <h2>Meal planning comes next</h2>
-            <p class="meta-text">Dinner readiness will appear here once recipe and meal planning are connected. No fake recommendation is shown before that data exists.</p>
+            {% if snapshot.dinner_name %}
+                <h2 id="today-dinner-title">{{ snapshot.dinner_name }}</h2>
+                {% if snapshot.dinner_needed_count %}
+                    <p class="meta-text">{{ snapshot.dinner_needed_count }} ingredient{{ snapshot.dinner_needed_count|pluralize }} need Shopping.</p>
+                {% elif snapshot.dinner_unknown_count %}
+                    <p class="meta-text">{{ snapshot.dinner_unknown_count }} ingredient{{ snapshot.dinner_unknown_count|pluralize }} need a stock check.</p>
+                {% else %}
+                    <p class="meta-text">Dinner is decided. No extra reminder is needed here.</p>
+                {% endif %}
+            {% else %}
+                <h2 id="today-dinner-title">Dinner is still open</h2>
+                <p class="meta-text">Choose a recipe or add a simple custom dinner when the decision is useful.</p>
+            {% endif %}
         </div>
+        <a class="button button--secondary" href="{% url 'household:plan' %}">
+            {% if snapshot.dinner_name %}Open Plan{% else %}Plan dinner{% endif %}
+        </a>
     </div>
 </section>
 {% endblock %}
