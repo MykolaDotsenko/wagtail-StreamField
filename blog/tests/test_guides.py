@@ -92,9 +92,7 @@ class GuidePageArchitectureTests(TestCase):
 
     def test_guide_type_is_filterable_search_metadata(self):
         filter_names = {
-            field.field_name
-            for field in BlogPage.search_fields
-            if hasattr(field, "field_name")
+            field.field_name for field in BlogPage.search_fields if hasattr(field, "field_name")
         }
 
         self.assertIn("guide_type", filter_names)
