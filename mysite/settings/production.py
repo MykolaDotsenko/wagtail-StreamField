@@ -21,6 +21,10 @@ WAGTAILADMIN_BASE_URL = os.environ.get("WAGTAILADMIN_BASE_URL")
 if not WAGTAILADMIN_BASE_URL:
     raise ImproperlyConfigured("WAGTAILADMIN_BASE_URL is required in production.")
 
+STORAGES["staticfiles"] = {
+    "BACKEND": "django.contrib.staticfiles.storage.ManifestStaticFilesStorage",
+}
+
 SECURE_SSL_REDIRECT = True
 SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
