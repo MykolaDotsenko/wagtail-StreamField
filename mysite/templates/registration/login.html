@@ -1,0 +1,18 @@
+{% extends "base.html" %}
+{% block title %}Sign in{% endblock %}
+{% block content %}
+<section class="auth-shell">
+    <div class="auth-card">
+        <p class="eyebrow">Your calm home workspace</p>
+        <h1>Welcome back.</h1>
+        <p>Sign in to see your shopping, pantry and routines.</p>
+        <form method="post" class="auth-form">
+            {% csrf_token %}
+            {{ form.as_div }}
+            {% if form.errors %}<p class="form-error">Check your username and password and try again.</p>{% endif %}
+            <button class="button button-primary" type="submit">Sign in</button>
+        </form>
+        <small>Demo note: create a user through Django or Wagtail admin for local evaluation.</small>
+    </div>
+</section>
+{% endblock %}
