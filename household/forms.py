@@ -28,6 +28,8 @@ class ShoppingItemCreateForm(forms.Form):
         name = ShoppingItem.normalize_display_name(self.cleaned_data["name"])
         if not name:
             raise forms.ValidationError("Enter an item to add.")
+        if len(name) > 120:
+            raise forms.ValidationError("Keep the item name to 120 characters or fewer.")
         return name
 
     def clean_quantity(self):
