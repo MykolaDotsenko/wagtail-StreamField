@@ -4,6 +4,7 @@ PROJECT_DIR = Path(__file__).resolve().parent.parent
 BASE_DIR = PROJECT_DIR.parent
 
 INSTALLED_APPS = [
+    "household",
     "blog",
     "home",
     "search",
