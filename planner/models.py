@@ -50,6 +50,9 @@ class PantryItem(models.Model):
         ordering = ["-low_stock", "expires_on", "name"]
         indexes = [models.Index(fields=["user", "expires_on"], name="pantry_user_exp_idx")]
 
+    def __str__(self):
+        return self.name
+
     @property
     def needs_attention(self):
         if self.low_stock:
@@ -57,9 +60,6 @@ class PantryItem(models.Model):
         if self.expires_on:
             return self.expires_on <= datetime.date.today() + datetime.timedelta(days=3)
         return False
-
-    def __str__(self):
-        return self.name
 
 
 class Chore(models.Model):
@@ -77,7 +77,11 @@ class Chore(models.Model):
         WEEKLY = "weekly", "Weekly"
         MONTHLY = "monthly", "Monthly"
 
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="chores")
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="chores",
+    )
     title = models.CharField(max_length=140)
     room = models.CharField(max_length=20, choices=Room.choices, default=Room.WHOLE_HOME)
     frequency = models.CharField(
@@ -127,9 +131,9 @@ class MealPlanEntry(models.Model):
         ]
         indexes = [models.Index(fields=["user", "date"], name="meal_user_date_idx")]
 
+    def __str__(self):
+        return f"{self.date} · {self.get_meal_type_display()}: {self.label or 'Unplanned'}"
+
     @property
     def label(self):
         return self.recipe.title if self.recipe_id else self.custom_meal
-
-    def __str__(self):
-        return f"{self.date} · {self.get_meal_type_display()}: {self.label or 'Unplanned'}"

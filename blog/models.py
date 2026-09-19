@@ -37,6 +37,8 @@ class BlogIndexPage(Page):
     max_count_per_parent = 1
     subpage_types = ["blog.BlogPage"]
 
+    content_panels = Page.content_panels + [FieldPanel("intro")]
+
     def get_context(self, request):
         context = super().get_context(request)
         guides = (
@@ -62,8 +64,6 @@ class BlogIndexPage(Page):
             }
         )
         return context
-
-    content_panels = Page.content_panels + [FieldPanel("intro")]
 
 
 class BlogPageTag(TaggedItemBase):
@@ -91,10 +91,6 @@ class BlogPage(Page):
     parent_page_types = ["blog.BlogIndexPage"]
     subpage_types = []
 
-    def main_image(self):
-        gallery_item = self.gallery_images.first()
-        return gallery_item.image if gallery_item else None
-
     search_fields = Page.search_fields + [
         index.SearchField("intro"),
         index.SearchField("body"),
@@ -117,6 +113,10 @@ class BlogPage(Page):
         FieldPanel("intro"),
         FieldPanel("body"),
     ]
+
+    def main_image(self):
+        gallery_item = self.gallery_images.first()
+        return gallery_item.image if gallery_item else None
 
 
 class BlogPageGalleryImage(Orderable):
@@ -143,11 +143,11 @@ class Author(models.Model):
     )
     panels = [FieldPanel("name"), FieldPanel("author_image")]
 
-    def __str__(self):
-        return self.name
-
     class Meta:
         verbose_name_plural = "Authors"
+
+    def __str__(self):
+        return self.name
 
 
 class BlogTagIndexPage(Page):
@@ -166,6 +166,8 @@ class RecipeIndexPage(Page):
     intro = RichTextField(blank=True)
     max_count_per_parent = 1
     subpage_types = ["blog.RecipePage"]
+
+    content_panels = Page.content_panels + [FieldPanel("intro")]
 
     def get_context(self, request):
         context = super().get_context(request)
@@ -192,8 +194,6 @@ class RecipeIndexPage(Page):
             }
         )
         return context
-
-    content_panels = Page.content_panels + [FieldPanel("intro")]
 
 
 class RecipePage(Page):
@@ -236,10 +236,6 @@ class RecipePage(Page):
     parent_page_types = ["blog.RecipeIndexPage"]
     subpage_types = []
 
-    @property
-    def total_minutes(self):
-        return self.prep_minutes + self.cook_minutes
-
     search_fields = Page.search_fields + [
         index.SearchField("summary"),
         index.SearchField("ingredients"),
@@ -266,3 +262,7 @@ class RecipePage(Page):
         FieldPanel("steps"),
         FieldPanel("body"),
     ]
+
+    @property
+    def total_minutes(self):
+        return self.prep_minutes + self.cook_minutes
