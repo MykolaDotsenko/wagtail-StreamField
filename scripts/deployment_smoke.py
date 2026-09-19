@@ -51,7 +51,10 @@ def require_security_headers(headers: object) -> None:
 
 def main() -> int:
     parser = argparse.ArgumentParser()
-    parser.add_argument(\n        "base_url",\n        help="Deployment root, e.g. https://domonest.onrender.com",\n    )
+    parser.add_argument(
+        "base_url",
+        help="Deployment root, e.g. https://domonest.onrender.com",
+    )
     parser.add_argument("--timeout", type=float, default=15.0)
     args = parser.parse_args()
 
