@@ -68,13 +68,15 @@ Important constraint:
 
 ### Mobile bottom navigation
 
+Current PR10 navigation exposes only working destinations:
 - Today
 - Plan
-- Quick Add
-- Home
+- Shop
+- Pantry
+- Rhythm
 - Learn
 
-"Home" contains Shopping, Pantry and Routines via local navigation. This keeps the global mobile navigation compact.
+Labels are intentionally compact for 360px layouts. A future Quick Add / Home consolidation should happen only when Quick Add itself exists and usability evidence justifies replacing the direct high-frequency destinations.
 
 ## Flow 1 — Today
 
@@ -83,15 +85,16 @@ Entry:
 - primary app route;
 - optional home-screen/bookmark entry.
 
-PR6 deterministic priority:
+PR10 deterministic priority:
 1. overdue routine;
 2. expired pantry item;
 3. routine due today;
 4. pantry use-soon;
 5. pantry low stock;
-6. active shopping summary.
+6. unresolved dinner planning/readiness;
+7. active shopping summary.
 
-The visible feed is capped at six actions. Meal planning remains a neutral placeholder until the meal domain exists.
+The visible feed is capped at six actions. A resolved dinner is shown as calm context; only unplanned dinner or recipe readiness that needs action enters the attention feed.
 
 Do not show more than the user can act on. A "View all" path is preferable to a dense wall.
 
@@ -223,22 +226,54 @@ Primary actions:
 
 ## Flow 5 — Meal planning
 
-MVP plans dinner only.
+Implemented in PR10. MVP plans dinner only.
+
+### Entry points
+- Plan navigation;
+- Today dinner card;
+- RecipePage "Plan this dinner".
+
+GET prefill may select a date/recipe but never mutates the plan.
+
+### Add/change dinner
+1. choose a dinner date;
+2. choose one live DomoNest recipe **or** enter a custom dinner;
+3. save;
+4. saving an already-planned date replaces that day's dinner.
+
+The form rejects past dates and rejects choosing both recipe + custom dinner.
+
+### Weekly surface
 
 Mobile:
-- vertical day list;
-- one meal card per day.
+- vertical seven-day list;
+- one dinner card per day.
 
-Desktop:
-- seven-day view may be used if it remains readable.
+Responsive desktop:
+- expands to 2 / 3 / 7 columns only as width allows.
 
-Meal selection should prioritize:
-- pantry readiness;
-- time;
-- user-relevant tags;
-- number of missing ingredients.
+Each planned recipe shows derived readiness:
+- Pantry ready;
+- N need Shopping;
+- N check stock;
+- ingredient data incomplete.
 
-Never imply algorithmic intelligence beyond implemented deterministic ranking.
+Custom dinners stay deliberately simple and do not pretend to have ingredient readiness.
+
+### Recipe choice ordering
+
+Deterministic ranking:
+1. fully Pantry-ready recipes;
+2. recipes with known Shopping shortages and no uncertainty;
+3. recipes with uncertain stock;
+4. recipes without structured ingredient data;
+then missing/unknown counts, total cooking time and title.
+
+This is decision support, not AI or a personal recommendation engine.
+
+### Durability
+
+MealPlanEntry stores a display-name snapshot. If a public recipe is later removed, the household's private dinner decision remains readable.
 
 ## Flow 6 — Recipe → shopping
 
